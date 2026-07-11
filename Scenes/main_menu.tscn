@@ -1,9 +1,47 @@
 [gd_scene format=3 uid="uid://dev5pirxfjevw"]
 
-[node name="Control" type="Control" unique_id=807700765]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[sub_resource type="LabelSettings" id="LabelSettings_4kxuq"]
+font_size = 125
+
+[node name="main_menu" type="Node2D" unique_id=1071015587]
+
+[node name="Label" type="Label" parent="." unique_id=1805483893]
+offset_left = 108.0
+offset_top = 64.0
+offset_right = 872.0
+offset_bottom = 235.0
+text = "Game Name"
+label_settings = SubResource("LabelSettings_4kxuq")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1523234269]
+offset_top = 464.0
+offset_right = 1916.0
+offset_bottom = 1076.0
+
+[node name="MainButtons" type="VBoxContainer" parent="CenterContainer" unique_id=1506188432]
+visible = false
+layout_mode = 2
+
+[node name="Button" type="Button" parent="CenterContainer/MainButtons" unique_id=1383127326]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Play"
+
+[node name="Button2" type="Button" parent="CenterContainer/MainButtons" unique_id=1540312997]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Settings"
+
+[node name="Button3" type="Button" parent="CenterContainer/MainButtons" unique_id=1221268205]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Exit"
+
+[node name="PlayContainer" type="VBoxContainer" parent="CenterContainer" unique_id=109207458]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SettingContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1744133455]
+layout_mode = 2
+theme_override_constants/separation = 16
