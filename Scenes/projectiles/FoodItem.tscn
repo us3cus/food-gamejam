@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/food_item.gd" id="1_fi"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_item"]
+radius = 0.2
+height = 0.4
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_item"]
+radius = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shadow"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0, 0, 0, 0.35)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_shadow"]
+material = SubResource("StandardMaterial3D_shadow")
+top_radius = 0.3
+bottom_radius = 0.3
+height = 0.02
+
+[node name="FoodItem" type="Area3D"]
+script = ExtResource("1_fi")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_item")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_item")
+
+[node name="Shadow" type="MeshInstance3D" parent="."]
+top_level = true
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_shadow")

@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_hud")
+
+[node name="TimerLabel" type="Label" parent="."]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 12.0
+offset_right = 80.0
+offset_bottom = 72.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 48
+text = "1:30"
+horizontal_alignment = 1
+
+[node name="P1Panel" type="VBoxContainer" parent="."]
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 264.0
+offset_bottom = 80.0
+
+[node name="NameLabel" type="Label" parent="P1Panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Игрок"
+
+[node name="HealthBar" type="ProgressBar" parent="P1Panel"]
+custom_minimum_size = Vector2(240, 24)
+layout_mode = 2
+max_value = 3.0
+value = 3.0
+show_percentage = false
+
+[node name="P2Panel" type="VBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -264.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = 80.0
+grow_horizontal = 0
+
+[node name="NameLabel" type="Label" parent="P2Panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Манекен"
+horizontal_alignment = 2
+
+[node name="HealthBar" type="ProgressBar" parent="P2Panel"]
+custom_minimum_size = Vector2(240, 24)
+layout_mode = 2
+max_value = 3.0
+value = 3.0
+show_percentage = false
+
+[node name="EndScreen" type="CenterContainer" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="EndScreen"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="EndScreen/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 32
+
+[node name="VBox" type="VBoxContainer" parent="EndScreen/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="WinnerLabel" type="Label" parent="EndScreen/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "Победил Игрок!"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="EndScreen/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Заново"

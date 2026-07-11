@@ -1,0 +1,128 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://Scenes/dummy/TrainingDummy.tscn" id="2_dummy"]
+[ext_resource type="Script" path="res://scripts/food_spawner.gd" id="3_spawner"]
+[ext_resource type="PackedScene" path="res://Scenes/projectiles/FoodItem.tscn" id="4_fooditem"]
+[ext_resource type="PackedScene" path="res://Scenes/traps/Pan.tscn" id="5_pan"]
+[ext_resource type="PackedScene" path="res://Scenes/traps/BananaPeel.tscn" id="6_banana"]
+[ext_resource type="PackedScene" path="res://Scenes/ui/HUD.tscn" id="7_hud"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_arena"]
+
+[sub_resource type="Sky" id="Sky_arena"]
+sky_material = SubResource("ProceduralSkyMaterial_arena")
+
+[sub_resource type="Environment" id="Environment_arena"]
+background_mode = 2
+sky = SubResource("Sky_arena")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.75, 0.76, 0.8, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+material = SubResource("StandardMaterial3D_floor")
+size = Vector3(20, 0.5, 12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(20, 0.5, 12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.85, 0.72, 0.55, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_ns"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(21, 2, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_ns"]
+size = Vector3(21, 2, 0.5)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_ew"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(0.5, 2, 12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_ew"]
+size = Vector3(0.5, 2, 12)
+
+[node name="Arena" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_arena")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, 0.409576, -0.286788, 0, 0.573576, 0.819152, 0.5, -0.709406, 0.496732, 0, 8, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.642788, 0.766044, 0, -0.766044, 0.642788, 0, 11.9, 10)
+current = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Walls" type="Node3D" parent="."]
+
+[node name="WallNorth" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -6.25)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallNorth"]
+mesh = SubResource("BoxMesh_wall_ns")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallNorth"]
+shape = SubResource("BoxShape3D_wall_ns")
+
+[node name="WallSouth" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 6.25)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallSouth"]
+mesh = SubResource("BoxMesh_wall_ns")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallSouth"]
+shape = SubResource("BoxShape3D_wall_ns")
+
+[node name="WallWest" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallWest"]
+mesh = SubResource("BoxMesh_wall_ew")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallWest"]
+shape = SubResource("BoxShape3D_wall_ew")
+
+[node name="WallEast" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.25, 1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallEast"]
+mesh = SubResource("BoxMesh_wall_ew")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallEast"]
+shape = SubResource("BoxShape3D_wall_ew")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="TrainingDummy" parent="." instance=ExtResource("2_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.1, 0)
+
+[node name="FoodSpawner" type="Node3D" parent="."]
+script = ExtResource("3_spawner")
+food_item_scene = ExtResource("4_fooditem")
+
+[node name="Pan" parent="." instance=ExtResource("5_pan")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+
+[node name="BananaPeel" parent="." instance=ExtResource("6_banana")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
+
+[node name="BananaPeel2" parent="." instance=ExtResource("6_banana")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3.5)
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+player_path = NodePath("../Player")
+dummy_path = NodePath("../TrainingDummy")
