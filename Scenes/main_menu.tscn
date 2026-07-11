@@ -19,20 +19,19 @@ offset_right = 1916.0
 offset_bottom = 1076.0
 
 [node name="MainButtons" type="VBoxContainer" parent="CenterContainer" unique_id=1506188432]
-visible = false
 layout_mode = 2
 
-[node name="Button" type="Button" parent="CenterContainer/MainButtons" unique_id=1383127326]
+[node name="PlayBunnton" type="Button" parent="CenterContainer/MainButtons" unique_id=1383127326]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "Play"
 
-[node name="Button2" type="Button" parent="CenterContainer/MainButtons" unique_id=1540312997]
+[node name="BackButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1540312997]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "Settings"
 
-[node name="Button3" type="Button" parent="CenterContainer/MainButtons" unique_id=1221268205]
+[node name="ExitButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1221268205]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "Exit"
@@ -43,5 +42,54 @@ layout_mode = 2
 theme_override_constants/separation = 16
 
 [node name="SettingContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1744133455]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="CenterContainer/SettingContainer" unique_id=1755885891]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Back
+"
+
+[node name="FullscreenCheck" type="CheckBox" parent="CenterContainer/SettingContainer" unique_id=587303457]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Full Screen
+"
+
+[node name="SoundSlider" type="HSlider" parent="CenterContainer/SettingContainer" unique_id=51966586]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.001
+
+[node name="SoundLabel" type="Label" parent="CenterContainer/SettingContainer/SoundSlider" unique_id=920787273]
+custom_minimum_size = Vector2(480, 55)
+layout_mode = 0
+offset_top = -24.0
+offset_right = 480.0
+offset_bottom = 113.0
+theme_override_font_sizes/font_size = 48
+text = "Volume
+"
+horizontal_alignment = 1
+
+[node name="MusicSlider" type="HSlider" parent="CenterContainer/SettingContainer" unique_id=1658591473]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.001
+
+[node name="MusicLabel" type="Label" parent="CenterContainer/SettingContainer/MusicSlider" unique_id=544088285]
+custom_minimum_size = Vector2(480, 55)
+layout_mode = 0
+offset_top = -24.0
+offset_right = 480.0
+offset_bottom = 113.0
+theme_override_font_sizes/font_size = 48
+text = "Music
+"
+horizontal_alignment = 1
