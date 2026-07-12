@@ -1,11 +1,19 @@
 [gd_scene format=3 uid="uid://dev5pirxfjevw"]
 
+[ext_resource type="Script" uid="uid://bfum4skfnqo6g" path="res://Scripts/main_menu.gd" id="1_vb0cx"]
+
 [sub_resource type="LabelSettings" id="LabelSettings_4kxuq"]
 font_size = 125
 
 [node name="main_menu" type="Node2D" unique_id=1071015587]
+script = ExtResource("1_vb0cx")
 
-[node name="Label" type="Label" parent="." unique_id=1805483893]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1892908074]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.22100195, 0.6351895, 0.5611714, 1)
+
+[node name="NameLabel" type="Label" parent="." unique_id=1805483893]
 offset_left = 108.0
 offset_top = 64.0
 offset_right = 872.0
@@ -35,11 +43,6 @@ text = "Settings"
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "Exit"
-
-[node name="PlayContainer" type="VBoxContainer" parent="CenterContainer" unique_id=109207458]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 16
 
 [node name="SettingContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1744133455]
 visible = false

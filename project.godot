@@ -14,6 +14,10 @@ config/name="food-gamejam"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Network="*res://Scripts/network_client.gd"
+
 [display]
 
 window/size/viewport_width=1920
@@ -25,6 +29,11 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="food-gamejam"
 
+[network]
+
+lobby/host="temten.me"
+lobby/port=7777
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
@@ -32,7 +41,3 @@ project/assembly_name="food-gamejam"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
-
-[steam_server]
-
-initialization/embed_callbacks=false
