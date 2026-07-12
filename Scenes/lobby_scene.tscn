@@ -1,0 +1,114 @@
+[gd_scene load_steps=2 format=3 uid="uid://d14uwoelh4u3w"]
+
+[ext_resource type="Script" path="res://Scripts/lobby_client.gd" id="1_lobby"]
+
+[node name="lobby_scene" type="Control" unique_id=1053027990]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby")
+
+[node name="Lobby" type="Control" parent="." unique_id=577660123]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Background" type="ColorRect" parent="Lobby" unique_id=876531548]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0431373, 0.054902, 0.0784314, 0.85098)
+
+[node name="Center" type="CenterContainer" parent="Lobby" unique_id=296819527]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LobbyPanel" type="PanelContainer" parent="Lobby/Center" unique_id=776689393]
+layout_mode = 2
+custom_minimum_size = Vector2(900, 620)
+
+[node name="MarginContainer" type="MarginContainer" parent="Lobby/Center/LobbyPanel" unique_id=425644508]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="MainColumn" type="VBoxContainer" parent="Lobby/Center/LobbyPanel/MarginContainer" unique_id=2105806567]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=2138177500]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ЛОББИ"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+
+[node name="PlayersTitle" type="Label" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=2076612336]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Игроки"
+theme_override_font_sizes/font_size = 20
+
+[node name="PlayersScroll" type="ScrollContainer" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=343158448]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 310)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PlayersList" type="VBoxContainer" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/PlayersScroll" unique_id=1186976719]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="StatusLabel" type="Label" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=317058057]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ожидание игроков..."
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=1259125092]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LeaveButton" type="Button" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/ButtonsRow" unique_id=745273626]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 44)
+size_flags_horizontal = 3
+text = "Выйти в меню"
+
+[node name="InviteButton" type="Button" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/ButtonsRow" unique_id=1087570948]
+layout_mode = 2
+custom_minimum_size = Vector2(130, 44)
+text = "Пригласить"
+
+[node name="StartButton" type="Button" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/ButtonsRow" unique_id=1621006196]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 44)
+text = "Начать"
+
+[node name="KickDialog" type="ConfirmationDialog" parent="Lobby" unique_id=1658562439]
+min_size = Vector2i(420, 180)
+title = "Исключить игрока?"
+dialog_text = "Исключить выбранного игрока из лобби?"
+ok_button_text = "Выгнать"
+cancel_button_text = "Отмена"
