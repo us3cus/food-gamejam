@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="FoodType" format=3 uid="uid://dyyddr11q6kq5"]
 
-[ext_resource type="Script" path="res://Scripts/food_type.gd" id="1_ft"]
+[ext_resource type="Script" uid="uid://4ilkbbtl10na" path="res://Scripts/food_type.gd" id="1_ft"]
 
 [sub_resource type="StandardMaterial3D" id="mat_tomato"]
 albedo_color = Color(0.85, 0.2, 0.15, 1)
@@ -14,11 +14,7 @@ height = 0.32
 script = ExtResource("1_ft")
 display_name = "Помидор"
 mesh = SubResource("mesh_tomato")
-visual_scale = 1.0
 rest_height = 0.16
 throw_speed = 14.0
-damage = 1
 knockback_strength = 3.5
-aoe_radius = 0.0
-aoe_knockback = 8.0
 spawn_weight = 3.0
