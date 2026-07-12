@@ -38,6 +38,11 @@ const SLIP_SPIN_SPEED := 12.0  # рад/с; во время скольжения
 @export var turn_speed := 12.0         # скорость доворота визуала к прицелу
 @export var knockback_friction := 10.0 # м/с^2, затухание внешнего толчка
 
+@export_group("Animation")
+# Имя клипа бега в модели персонажа (у Mixamo-экспорта это "mixamo_com").
+# Модель — любая сцена с AnimationPlayer внутри Visual: находится автоматически.
+@export var run_animation := "mixamo_com"
+
 @export_group("Throwing")
 @export var projectile_scene: PackedScene  # FoodProjectile.tscn, назначается в инспекторе
 @export var throw_cooldown := 0.3          # сек; лимитирует в основном наличие еды
@@ -60,6 +65,7 @@ var _spawn_position := Vector3.ZERO  # куда возвращаемся пос�
 
 # Свой материал маркера на каждый инстанс игрока (меши в сцене делят общие ресурсы).
 var _aim_material := StandardMaterial3D.new()
+var _anim_player: AnimationPlayer = null  # ищется внутри модели в _ready
 
 @onready var _visual: Node3D = $Visual
 @onready var _throw_origin: Marker3D = $Visual/ThrowOrigin
@@ -73,7 +79,19 @@ func _ready() -> void:
 	_aim_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_aim_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_aim_marker.material_override = _aim_material
+	_setup_animation()
 	_update_held_visuals()
+
+
+# Находим AnimationPlayer в модели под Visual (owned=false — нода живёт внутри
+# инстанса glb-сцены) и зацикливаем бег: glb-клипы по умолчанию не зациклены.
+func _setup_animation() -> void:
+	var players := _visual.find_children("*", "AnimationPlayer", true, false)
+	if players.is_empty():
+		return
+	_anim_player = players.front()
+	if _anim_player.has_animation(run_animation):
+		_anim_player.get_animation(run_animation).loop_mode = Animation.LOOP_LINEAR
 
 
 func _physics_process(delta: float) -> void:
@@ -87,6 +105,7 @@ func _physics_process(delta: float) -> void:
 	_update_aim()
 	_apply_movement(move_input, sprinting, jump_pressed, delta)
 	_update_facing(delta)
+	_update_animation()
 
 	_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 	_update_charge(throw_held, delta)
@@ -230,6 +249,21 @@ func _update_held_visuals() -> void:
 		_held_food.mesh = _held_type.mesh
 		_held_food.scale = Vector3.ONE * _held_type.visual_scale * 0.9
 	_aim_material.albedo_color = AIM_COLOR_ARMED if _held_type != null else AIM_COLOR_EMPTY
+
+
+# Бег играет, пока есть горизонтальная скорость на земле; темп подстраивается
+# под фактическую скорость (спринт быстрее перебирает ногами). На месте и в
+# прыжке — пауза (кадр застывает; появится idle-клип — заменить pause на play).
+func _update_animation() -> void:
+	if _anim_player == null or not _anim_player.has_animation(run_animation):
+		return
+	var flat_speed := Vector2(velocity.x, velocity.z).length()
+	if flat_speed > 0.5 and is_on_floor():
+		if _anim_player.current_animation != run_animation or not _anim_player.is_playing():
+			_anim_player.play(run_animation)
+		_anim_player.speed_scale = maxf(flat_speed / move_speed, 0.5)
+	elif _anim_player.is_playing():
+		_anim_player.pause()
 
 
 # Маркер прицела растёт и краснеет по мере заряда броска.
