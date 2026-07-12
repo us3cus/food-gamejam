@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scripts/food_type.gd" id="1_ft"]
+
+[sub_resource type="StandardMaterial3D" id="mat_cheese"]
+albedo_color = Color(0.95, 0.78, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="mesh_cheese"]
+material = SubResource("mat_cheese")
+size = Vector3(0.3, 0.2, 0.3)
+
+[resource]
+script = ExtResource("1_ft")
+display_name = "Сыр"
+mesh = SubResource("mesh_cheese")
+visual_scale = 1.0
+rest_height = 0.1
+throw_speed = 10.0
+damage = 1
+knockback_strength = 6.0
+aoe_radius = 0.0
+aoe_knockback = 8.0
+spawn_weight = 3.0

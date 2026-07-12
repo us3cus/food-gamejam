@@ -7,6 +7,13 @@
 [ext_resource type="PackedScene" path="res://Scenes/traps/Pan.tscn" id="5_pan"]
 [ext_resource type="PackedScene" path="res://Scenes/traps/BananaPeel.tscn" id="6_banana"]
 [ext_resource type="PackedScene" path="res://Scenes/ui/HUD.tscn" id="7_hud"]
+[ext_resource type="Script" path="res://Scripts/shrinking_floor.gd" id="8_floor"]
+[ext_resource type="PackedScene" path="res://Scenes/traps/OilPuddle.tscn" id="9_oil"]
+[ext_resource type="PackedScene" path="res://Scenes/traps/Stove.tscn" id="10_stove"]
+[ext_resource type="Resource" path="res://assets/food/tomato.tres" id="11_tomato"]
+[ext_resource type="Resource" path="res://assets/food/cheese.tres" id="12_cheese"]
+[ext_resource type="Resource" path="res://assets/food/pumpkin.tres" id="13_pumpkin"]
+[ext_resource type="Resource" path="res://assets/food/watermelon.tres" id="14_melon"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_arena"]
 
@@ -54,6 +61,7 @@ current = true
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=1144410206]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+script = ExtResource("8_floor")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=113058047]
 mesh = SubResource("CylinderMesh_floor")
@@ -65,25 +73,41 @@ shape = SubResource("CylinderShape3D_floor")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
 mesh = SubResource("CylinderMesh_rim")
 
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="SpawnP1" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.1, 0)
+
+[node name="SpawnP2" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0.1, 0)
+
 [node name="Player" parent="." unique_id=1237900645 instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0.1, 0)
 
 [node name="TrainingDummy" parent="." unique_id=800032932 instance=ExtResource("2_dummy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0.1, 0)
 
 [node name="FoodSpawner" type="Node3D" parent="." unique_id=1934793616]
 script = ExtResource("3_spawner")
 food_item_scene = ExtResource("4_fooditem")
+food_types = [ExtResource("11_tomato"), ExtResource("12_cheese"), ExtResource("13_pumpkin"), ExtResource("14_melon")]
 
 [node name="Pan" parent="." unique_id=636863822 instance=ExtResource("5_pan")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
 
 [node name="BananaPeel" parent="." unique_id=1515453942 instance=ExtResource("6_banana")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 2.5)
 
 [node name="BananaPeel2" parent="." unique_id=1392711145 instance=ExtResource("6_banana")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -2.5)
+
+[node name="OilPuddle" parent="." instance=ExtResource("9_oil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -2)
+
+[node name="Stove" parent="." instance=ExtResource("10_stove")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 2)
 
 [node name="HUD" parent="." unique_id=1505229463 instance=ExtResource("7_hud")]
 player_path = NodePath("../Player")
 dummy_path = NodePath("../TrainingDummy")
+floor_path = NodePath("../Floor")

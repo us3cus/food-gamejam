@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scripts/food_type.gd" id="1_ft"]
+
+[sub_resource type="StandardMaterial3D" id="mat_melon"]
+albedo_color = Color(0.25, 0.6, 0.25, 1)
+
+[sub_resource type="SphereMesh" id="mesh_melon"]
+material = SubResource("mat_melon")
+radius = 0.32
+height = 0.58
+
+[resource]
+script = ExtResource("1_ft")
+display_name = "Арбуз"
+mesh = SubResource("mesh_melon")
+visual_scale = 1.0
+rest_height = 0.29
+throw_speed = 8.0
+damage = 1
+knockback_strength = 7.0
+aoe_radius = 2.5
+aoe_knockback = 9.0
+spawn_weight = 1.0

@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/oil_puddle.gd" id="1_oil"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oil"]
+albedo_color = Color(0.22, 0.18, 0.08, 1)
+metallic = 0.4
+roughness = 0.05
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_oil"]
+material = SubResource("StandardMaterial3D_oil")
+top_radius = 1.2
+bottom_radius = 1.2
+height = 0.02
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_oil"]
+radius = 1.2
+height = 0.3
+
+[node name="OilPuddle" type="Area3D"]
+script = ExtResource("1_oil")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+mesh = SubResource("CylinderMesh_oil")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("CylinderShape3D_oil")

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scripts/food_type.gd" id="1_ft"]
+
+[sub_resource type="StandardMaterial3D" id="mat_pumpkin"]
+albedo_color = Color(0.9, 0.45, 0.1, 1)
+
+[sub_resource type="SphereMesh" id="mesh_pumpkin"]
+material = SubResource("mat_pumpkin")
+radius = 0.3
+height = 0.5
+
+[resource]
+script = ExtResource("1_ft")
+display_name = "Тыква"
+mesh = SubResource("mesh_pumpkin")
+visual_scale = 1.0
+rest_height = 0.25
+throw_speed = 6.5
+damage = 2
+knockback_strength = 11.0
+aoe_radius = 0.0
+aoe_knockback = 8.0
+spawn_weight = 2.0
