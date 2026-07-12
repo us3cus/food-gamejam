@@ -15,7 +15,7 @@ signal health_changed(current: int, max_hp: int)
 signal died
 
 # preload вместо глобального class_name: не зависит от кэша классов редактора.
-const FoodProjectileScript = preload("res://scripts/food_projectile.gd")
+const FoodProjectileScript = preload("res://Scripts/food_projectile.gd")
 
 const AIM_COLOR_ARMED := Color(1.0, 0.55, 0.1, 0.9)  # еда в руках — можно кидать
 const AIM_COLOR_EMPTY := Color(1.0, 1.0, 1.0, 0.25)  # руки пусты — маркер тусклый
@@ -23,6 +23,7 @@ const SLIP_SPIN_SPEED := 12.0  # рад/с; во время скольжения
 
 @export_group("Health")
 @export var max_health := 3
+@export var fall_y_threshold := -6.0  # ниже этой высоты считаем, что упал с арены
 
 @export_group("Movement")
 @export var move_speed := 6.0          # м/с, базовая скорость
@@ -46,6 +47,7 @@ var _knockback := Vector3.ZERO      # внешний толчок (сковор�
 var _slip_left := 0.0               # сек скольжения на банане, 0 = контроль у игрока
 var _slip_velocity := Vector3.ZERO  # куда несёт во время скольжения
 var _health := 0
+var _spawn_position := Vector3.ZERO  # куда возвращаемся после падения с арены
 
 # Свои материалы на каждый инстанс игрока: меши в сцене делят общие ресурсы,
 # а маркер прицела и еда в руках красятся индивидуально.
@@ -60,6 +62,7 @@ var _food_material := StandardMaterial3D.new()
 
 func _ready() -> void:
 	_health = max_health
+	_spawn_position = global_position
 	_aim_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_aim_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_aim_marker.material_override = _aim_material
@@ -83,6 +86,9 @@ func _physics_process(delta: float) -> void:
 	if throw_held and _has_food and _has_aim and _cooldown_left == 0.0:
 		_throw()
 
+	if global_position.y < fall_y_threshold:
+		_fall_off_arena()
+
 
 # Зовёт FoodItem при касании. false = руки заняты, предмет остаётся лежать.
 func pick_up_food(food_color: Color) -> bool:
@@ -92,6 +98,15 @@ func pick_up_food(food_color: Color) -> bool:
 	_food_color = food_color
 	_update_held_visuals()
 	return true
+
+
+# Падение с круглой арены: минус 1 HP и возврат на точку старта.
+func _fall_off_arena() -> void:
+	global_position = _spawn_position
+	velocity = Vector3.ZERO
+	_knockback = Vector3.ZERO
+	_slip_left = 0.0
+	take_hit(1, Vector3.ZERO)
 
 
 # Урон от снаряда — общий контракт take_hit, как у манекена (см. food_projectile.gd).

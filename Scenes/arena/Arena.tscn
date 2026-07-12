@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://Scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://Scenes/dummy/TrainingDummy.tscn" id="2_dummy"]
-[ext_resource type="Script" uid="uid://cns13qph2n0vq" path="res://scripts/food_spawner.gd" id="3_spawner"]
+[ext_resource type="Script" uid="uid://cns13qph2n0vq" path="res://Scripts/food_spawner.gd" id="3_spawner"]
 [ext_resource type="PackedScene" path="res://Scenes/projectiles/FoodItem.tscn" id="4_fooditem"]
 [ext_resource type="PackedScene" path="res://Scenes/traps/Pan.tscn" id="5_pan"]
 [ext_resource type="PackedScene" path="res://Scenes/traps/BananaPeel.tscn" id="6_banana"]
@@ -20,29 +20,24 @@ sky = SubResource("Sky_arena")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.75, 0.76, 0.8, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_floor"]
 material = SubResource("StandardMaterial3D_floor")
-size = Vector3(20, 0.5, 12)
+top_radius = 9.0
+bottom_radius = 9.0
+height = 0.5
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(20, 0.5, 12)
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_floor"]
+radius = 9.0
+height = 0.5
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
-albedo_color = Color(0.85, 0.72, 0.55, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rim"]
+albedo_color = Color(0.3, 0.31, 0.35, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_wall_ns"]
-material = SubResource("StandardMaterial3D_wall")
-size = Vector3(21, 2, 0.5)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_wall_ns"]
-size = Vector3(21, 2, 0.5)
-
-[sub_resource type="BoxMesh" id="BoxMesh_wall_ew"]
-material = SubResource("StandardMaterial3D_wall")
-size = Vector3(0.5, 2, 12)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_wall_ew"]
-size = Vector3(0.5, 2, 12)
+[sub_resource type="CylinderMesh" id="CylinderMesh_rim"]
+material = SubResource("StandardMaterial3D_rim")
+top_radius = 9.35
+bottom_radius = 9.0
+height = 0.35
 
 [node name="Arena" type="Node3D" unique_id=1880689980]
 
@@ -61,48 +56,14 @@ current = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=113058047]
-mesh = SubResource("BoxMesh_floor")
+mesh = SubResource("CylinderMesh_floor")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=886337814]
-shape = SubResource("BoxShape3D_floor")
+shape = SubResource("CylinderShape3D_floor")
 
-[node name="Walls" type="Node3D" parent="." unique_id=448466823]
-
-[node name="WallNorth" type="StaticBody3D" parent="Walls" unique_id=1775400980]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -6.25)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallNorth" unique_id=375785681]
-mesh = SubResource("BoxMesh_wall_ns")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallNorth" unique_id=57968384]
-shape = SubResource("BoxShape3D_wall_ns")
-
-[node name="WallSouth" type="StaticBody3D" parent="Walls" unique_id=401016366]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 6.25)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallSouth" unique_id=1157778737]
-mesh = SubResource("BoxMesh_wall_ns")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallSouth" unique_id=291842722]
-shape = SubResource("BoxShape3D_wall_ns")
-
-[node name="WallWest" type="StaticBody3D" parent="Walls" unique_id=695374305]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.25, 1, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallWest" unique_id=561274593]
-mesh = SubResource("BoxMesh_wall_ew")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallWest" unique_id=1635216852]
-shape = SubResource("BoxShape3D_wall_ew")
-
-[node name="WallEast" type="StaticBody3D" parent="Walls" unique_id=430657365]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.25, 1, 0)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Walls/WallEast" unique_id=437203951]
-mesh = SubResource("BoxMesh_wall_ew")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Walls/WallEast" unique_id=1776318712]
-shape = SubResource("BoxShape3D_wall_ew")
+[node name="Rim" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
+mesh = SubResource("CylinderMesh_rim")
 
 [node name="Player" parent="." unique_id=1237900645 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

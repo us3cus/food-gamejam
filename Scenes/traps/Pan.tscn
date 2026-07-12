@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/pan.gd" id="1_pan"]
+[ext_resource type="Script" path="res://Scripts/pan.gd" id="1_pan"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
 albedo_color = Color(0.35, 0.37, 0.42, 1)

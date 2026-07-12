@@ -8,7 +8,7 @@ extends Node3D
 @export var spawn_interval := 2.5         # сек между спавнами
 @export var max_items := 6                # больше этого на арене одновременно не живёт
 @export var spawn_height := 9.0           # м, высота начала падения
-@export var spawn_area := Vector2(17.0, 9.0)  # зона спавна по X/Z, чуть меньше арены
+@export var spawn_radius := 7.0           # м, круг спавна — чуть меньше радиуса арены
 
 var _time_left := 0.0  # первый предмет падает сразу после старта
 
@@ -22,9 +22,9 @@ func _process(delta: float) -> void:
 
 func _spawn_item() -> void:
 	var item := food_item_scene.instantiate() as Node3D
+	# Случайная точка в круге: sqrt(randf) даёт равномерное распределение по площади.
+	var angle := randf() * TAU
+	var dist := sqrt(randf()) * spawn_radius
 	# Позицию задаём до add_child, чтобы _ready предмета увидел верные координаты.
-	item.position = Vector3(
-			randf_range(-spawn_area.x / 2.0, spawn_area.x / 2.0),
-			spawn_height,
-			randf_range(-spawn_area.y / 2.0, spawn_area.y / 2.0))
+	item.position = Vector3(cos(angle) * dist, spawn_height, sin(angle) * dist)
 	add_child(item)

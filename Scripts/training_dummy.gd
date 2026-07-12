@@ -13,9 +13,11 @@ signal died
 @export var max_health := 3
 @export var respawn_delay := 2.0       # сек до возвращения после нокаута
 @export var knockback_friction := 8.0  # м/с^2, скорость затухания скольжения от кнокбэка
+@export var fall_y_threshold := -6.0   # ниже этой высоты считаем, что упал с арены
 
 var _health: int
 var _knocked_out := false
+var _spawn_position := Vector3.ZERO
 var _material := StandardMaterial3D.new()
 
 @onready var _visual: Node3D = $Visual
@@ -25,6 +27,7 @@ var _material := StandardMaterial3D.new()
 
 func _ready() -> void:
 	_health = max_health
+	_spawn_position = global_position
 	# material_override, чтобы у каждого манекена был свой цвет (меш-материал общий).
 	_body_mesh.material_override = _material
 	_update_color()
@@ -39,6 +42,12 @@ func _physics_process(delta: float) -> void:
 	velocity.x = flat.x
 	velocity.z = flat.z
 	move_and_slide()
+
+	# Столкнули с арены — минус 1 HP и возврат на точку старта.
+	if global_position.y < fall_y_threshold and not _knocked_out:
+		global_position = _spawn_position
+		velocity = Vector3.ZERO
+		take_hit(1, Vector3.ZERO)
 
 
 func take_hit(damage: int, knockback: Vector3) -> void:
@@ -67,6 +76,8 @@ func _knock_out() -> void:
 	_collision.set_deferred("disabled", true)
 	velocity = Vector3.ZERO
 	await get_tree().create_timer(respawn_delay).timeout
+	# Возвращаемся на точку старта — чтобы не воскреснуть за краем арены.
+	global_position = _spawn_position
 	_health = max_health
 	_update_color()
 	health_changed.emit(_health, max_health)

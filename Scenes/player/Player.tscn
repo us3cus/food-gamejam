@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/player_controller.gd" id="1_pc"]
+[ext_resource type="Script" path="res://Scripts/player_controller.gd" id="1_pc"]
 [ext_resource type="PackedScene" path="res://Scenes/projectiles/FoodProjectile.tscn" id="2_proj"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
