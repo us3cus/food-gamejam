@@ -5,7 +5,16 @@ const PROTOCOL_VERSION = 1;
 const MAX_PACKET_BYTES = 1_048_576;
 const RATE_LIMIT_PER_SECOND = 60;
 const GAME_STATE_INTERVAL_MS = 50;
+const FOOD_SPAWN_INTERVAL_MS = 2_500;
+const MAX_FOOD_ITEMS = 6;
+const PROJECTILE_LIFETIME_MS = 6_000;
 const LOBBY_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const FOOD_TYPES = new Map([
+  ['tomato', { weight: 3, damage: 1, aoe: false }],
+  ['cheese', { weight: 3, damage: 1, aoe: false }],
+  ['pumpkin', { weight: 2, damage: 2, aoe: false }],
+  ['watermelon', { weight: 1, damage: 1, aoe: true }],
+]);
 
 function clampInteger(value, fallback, min, max) {
   const parsed = Number(value);
@@ -305,6 +314,7 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
         seed: randomInt(1, 2_147_483_647),
         settings: { ...lobby.settings },
         players: matchPlayers(match),
+        items: publicItems(match),
       });
       broadcastGameState(match);
       return;
@@ -332,6 +342,173 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
         z: clamp(velocity.z, -25, 25),
       };
       state.yaw = clamp(yaw, -Math.PI * 4, Math.PI * 4);
+      return;
+    }
+
+    if (type === 'game.item.pickup') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const state = match.players.get(player.id);
+      const item = match.items.get(String(payload.item_id ?? ''));
+      if (!item || state.heldFood || Date.now() < item.pickupAvailableAt
+          || flatDistance(state.position, item.position) > 1.75) {
+        sendError(player, requestId, 'ITEM_NOT_AVAILABLE', 'Предмет уже подобран или находится слишком далеко');
+        return;
+      }
+      match.items.delete(item.id);
+      state.heldFood = item.foodType;
+      broadcastMatch(match, 'game.item.picked', {
+        match_id: match.id,
+        item_id: item.id,
+        player_id: player.id,
+        food_type: item.foodType,
+      });
+      return;
+    }
+
+    if (type === 'game.item.drop') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const state = match.players.get(player.id);
+      const requestedPosition = vector(payload.position);
+      if (!state.heldFood || !requestedPosition
+          || flatDistance(state.position, requestedPosition) > 3) {
+        sendError(player, requestId, 'INVALID_ITEM_DROP', 'Нельзя выбросить этот предмет');
+        return;
+      }
+      const foodType = state.heldFood;
+      state.heldFood = null;
+      const item = spawnFoodItem(match, {
+        foodType,
+        position: {
+          x: clamp(requestedPosition.x, -10, 10),
+          y: clamp(requestedPosition.y, 0.1, 2),
+          z: clamp(requestedPosition.z, -10, 10),
+        },
+        pickupDelayMs: 750,
+      });
+      broadcastMatch(match, 'game.item.spawn', publicItem(match, item));
+      return;
+    }
+
+    if (type === 'game.item.hit') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const target = match.players.get(String(payload.target_id ?? ''));
+      const item = match.items.get(String(payload.item_id ?? ''));
+      const knockback = vector(payload.knockback);
+      if (!item || item.bonked || !target || target.id !== player.id || !knockback
+          || flatDistance(target.position, item.position) > 1.75 || target.health <= 0) {
+        sendError(player, requestId, 'INVALID_ITEM_HIT', 'Некорректное попадание падающим предметом');
+        return;
+      }
+      item.bonked = true;
+      target.health = Math.max(0, target.health - 1);
+      broadcastMatch(match, 'game.hit', {
+        match_id: match.id,
+        source_id: `item:${item.id}`,
+        target_id: target.id,
+        damage: 1,
+        health: target.health,
+        knockback: clampedVector(knockback, 20),
+      });
+      return;
+    }
+
+    if (type === 'game.item.despawn') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const item = match.items.get(String(payload.item_id ?? ''));
+      if (!item || match.hostId !== player.id) return;
+      match.items.delete(item.id);
+      broadcastMatch(match, 'game.item.despawn', {
+        match_id: match.id,
+        item_id: item.id,
+      });
+      return;
+    }
+
+    if (type === 'game.projectile.spawn') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const state = match.players.get(player.id);
+      const origin = vector(payload.origin);
+      const velocity = vector(payload.velocity);
+      const multiplier = Number(payload.knockback_multiplier);
+      if (!state.heldFood || !origin || !velocity || !Number.isFinite(multiplier)
+          || String(payload.food_type ?? '') !== state.heldFood
+          || distance(state.position, origin) > 3.5 || magnitude(velocity) > 40) {
+        sendError(player, requestId, 'INVALID_PROJECTILE', 'Некорректные параметры броска');
+        return;
+      }
+      const config = FOOD_TYPES.get(state.heldFood);
+      if (!config) {
+        sendError(player, requestId, 'INVALID_FOOD_TYPE', 'Неизвестный тип предмета');
+        return;
+      }
+      const projectile = {
+        id: randomUUID(),
+        sourceId: player.id,
+        foodType: state.heldFood,
+        origin: clampedVector(origin, 20),
+        velocity: clampedVector(velocity, 40),
+        knockbackMultiplier: clamp(multiplier, 1, 1.5),
+        damage: config.damage,
+        aoe: config.aoe,
+        createdAt: Date.now(),
+        hitTargets: new Set(),
+      };
+      state.heldFood = null;
+      match.projectiles.set(projectile.id, projectile);
+      broadcastMatch(match, 'game.projectile.spawn', {
+        match_id: match.id,
+        projectile_id: projectile.id,
+        source_id: projectile.sourceId,
+        food_type: projectile.foodType,
+        origin: projectile.origin,
+        velocity: projectile.velocity,
+        knockback_multiplier: projectile.knockbackMultiplier,
+        server_time: projectile.createdAt,
+      });
+      return;
+    }
+
+    if (type === 'game.projectile.hit') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const projectile = match.projectiles.get(String(payload.projectile_id ?? ''));
+      const target = match.players.get(String(payload.target_id ?? ''));
+      const knockback = vector(payload.knockback);
+      if (!projectile || projectile.sourceId !== player.id || !target || !knockback
+          || projectile.hitTargets.has(target.id) || target.health <= 0
+          || (!projectile.aoe && projectile.hitTargets.size > 0)) {
+        sendError(player, requestId, 'INVALID_PROJECTILE_HIT', 'Некорректное попадание проджектайлом');
+        return;
+      }
+      projectile.hitTargets.add(target.id);
+      target.health = Math.max(0, target.health - projectile.damage);
+      broadcastMatch(match, 'game.hit', {
+        match_id: match.id,
+        source_id: projectile.sourceId,
+        projectile_id: projectile.id,
+        target_id: target.id,
+        damage: projectile.damage,
+        health: target.health,
+        knockback: clampedVector(knockback, 20),
+      });
+      return;
+    }
+
+    if (type === 'game.projectile.despawn') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const projectile = match.projectiles.get(String(payload.projectile_id ?? ''));
+      if (!projectile || projectile.sourceId !== player.id) return;
+      match.projectiles.delete(projectile.id);
+      broadcastMatch(match, 'game.projectile.despawn', {
+        match_id: match.id,
+        projectile_id: projectile.id,
+      });
       return;
     }
 
@@ -377,11 +554,17 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
         state.position = spawnPosition(state.spawnSlot);
         state.velocity = { x: 0, y: 0, z: 0 };
         state.health = 3;
+        state.heldFood = null;
       }
+      match.items.clear();
+      match.projectiles.clear();
+      spawnFoodItem(match);
+      match.nextItemSpawnAt = Date.now() + FOOD_SPAWN_INTERVAL_MS;
       broadcastMatch(match, 'game.round.started', {
         match_id: match.id,
         reset_match: payload.reset_match === true,
         players: matchPlayers(match),
+        items: publicItems(match),
       });
       return;
     }
@@ -464,7 +647,11 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
 
   server.on('error', (error) => logger.error?.(`TCP server error: ${error.message}`));
   const gameTimer = setInterval(() => {
-    for (const match of matches.values()) broadcastGameState(match);
+    const now = Date.now();
+    for (const match of matches.values()) {
+      maintainMatchWorld(match, now);
+      broadcastGameState(match);
+    }
   }, GAME_STATE_INTERVAL_MS);
   gameTimer.unref();
   server.on('close', () => clearInterval(gameTimer));
@@ -473,7 +660,15 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
   return server;
 
   function createMatch(lobby) {
-    const match = { id: randomUUID(), lobbyId: lobby.id, hostId: lobby.hostId, players: new Map() };
+    const match = {
+      id: randomUUID(),
+      lobbyId: lobby.id,
+      hostId: lobby.hostId,
+      players: new Map(),
+      items: new Map(),
+      projectiles: new Map(),
+      nextItemSpawnAt: Date.now() + FOOD_SPAWN_INTERVAL_MS,
+    };
     [...lobby.players.values()].forEach((member, spawnSlot) => match.players.set(member.id, {
       id: member.id,
       name: member.name,
@@ -483,7 +678,9 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
       yaw: spawnSlot === 0 ? -Math.PI / 2 : Math.PI / 2,
       health: 3,
       lastHitAt: 0,
+      heldFood: null,
     }));
+    spawnFoodItem(match);
     return match;
   }
 
@@ -507,7 +704,53 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
       velocity: state.velocity,
       yaw: state.yaw,
       health: state.health,
+      held_food: state.heldFood || '',
     }));
+  }
+
+  function publicItem(match, item) {
+    return {
+      match_id: match.id,
+      item_id: item.id,
+      food_type: item.foodType,
+      position: item.position,
+      pickup_delay_ms: Math.max(0, item.pickupAvailableAt - Date.now()),
+    };
+  }
+
+  function publicItems(match) {
+    return [...match.items.values()].map((item) => publicItem(match, item));
+  }
+
+  function spawnFoodItem(match, { foodType = null, position = null, pickupDelayMs = 0 } = {}) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.sqrt(Math.random()) * 7;
+    const item = {
+      id: randomUUID(),
+      foodType: foodType || randomFoodType(),
+      position: position || { x: Math.cos(angle) * radius, y: 9, z: Math.sin(angle) * radius },
+      pickupAvailableAt: Date.now() + pickupDelayMs,
+      bonked: false,
+    };
+    match.items.set(item.id, item);
+    return item;
+  }
+
+  function maintainMatchWorld(match, now) {
+    for (const projectile of match.projectiles.values()) {
+      if (now - projectile.createdAt >= PROJECTILE_LIFETIME_MS) {
+        match.projectiles.delete(projectile.id);
+        broadcastMatch(match, 'game.projectile.despawn', {
+          match_id: match.id,
+          projectile_id: projectile.id,
+        });
+      }
+    }
+    if (match.items.size < MAX_FOOD_ITEMS && now >= match.nextItemSpawnAt) {
+      const item = spawnFoodItem(match);
+      match.nextItemSpawnAt = now + FOOD_SPAWN_INTERVAL_MS;
+      broadcastMatch(match, 'game.item.spawn', publicItem(match, item));
+    }
   }
 
   function broadcastGameState(match) {
@@ -515,6 +758,7 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
       match_id: match.id,
       server_time: Date.now(),
       players: matchPlayers(match),
+      items: publicItems(match),
     });
   }
 
@@ -534,6 +778,36 @@ function vector(value) {
   const y = Number(value.y);
   const z = Number(value.z);
   return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z) ? { x, y, z } : null;
+}
+
+function clampedVector(value, limit) {
+  return {
+    x: clamp(value.x, -limit, limit),
+    y: clamp(value.y, -limit, limit),
+    z: clamp(value.z, -limit, limit),
+  };
+}
+
+function magnitude(value) {
+  return Math.hypot(value.x, value.y, value.z);
+}
+
+function distance(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+function flatDistance(a, b) {
+  return Math.hypot(a.x - b.x, a.z - b.z);
+}
+
+function randomFoodType() {
+  const totalWeight = [...FOOD_TYPES.values()].reduce((sum, config) => sum + config.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const [foodType, config] of FOOD_TYPES) {
+    roll -= config.weight;
+    if (roll <= 0) return foodType;
+  }
+  return FOOD_TYPES.keys().next().value;
 }
 
 function clamp(value, min, max) {

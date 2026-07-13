@@ -134,6 +134,8 @@ test('create, configure, ready and start a lobby over TCP', async (t) => {
   assert.deepEqual(hostStarted.payload.settings, guestStarted.payload.settings);
   assert.equal(hostStarted.payload.players.length, 2);
   assert.deepEqual(hostStarted.payload.players.map((player) => player.spawn_slot), [0, 1]);
+  assert.equal(hostStarted.payload.items.length, 1);
+  assert.equal(hostStarted.payload.items[0].item_id, guestStarted.payload.items[0].item_id);
 
   host.send('game.input', {
     match_id: hostStarted.payload.match_id,
@@ -147,18 +149,91 @@ test('create, configure, ready and start a lobby over TCP', async (t) => {
   ));
   assert.equal(gameState.payload.players.length, 2);
 
+  const item = hostStarted.payload.items[0];
+  host.send('game.input', {
+    match_id: hostStarted.payload.match_id,
+    position: { x: item.position.x, y: 0.1, z: item.position.z },
+    velocity: { x: 0, y: 0, z: 0 },
+    yaw: 0,
+  });
+  await guest.waitFor('game.state', (payload) => (
+    payload.players.some((member) => member.id === hostWelcome.payload.player_id
+      && member.position.x === item.position.x && member.position.z === item.position.z)
+  ));
+
+  host.send('game.item.pickup', {
+    match_id: hostStarted.payload.match_id,
+    item_id: item.item_id,
+  });
+  const picked = await guest.waitFor('game.item.picked');
+  assert.equal(picked.payload.item_id, item.item_id);
+  assert.equal(picked.payload.player_id, hostWelcome.payload.player_id);
+
+  host.send('game.item.drop', {
+    match_id: hostStarted.payload.match_id,
+    food_type: picked.payload.food_type,
+    position: { x: item.position.x, y: 0.5, z: item.position.z },
+  });
+  const dropped = await guest.waitFor('game.item.spawn', (payload) => (
+    payload.food_type === picked.payload.food_type && payload.pickup_delay_ms > 0
+  ));
+  assert.notEqual(dropped.payload.item_id, item.item_id);
+  await new Promise((resolve) => setTimeout(resolve, 800));
+  host.send('game.item.pickup', {
+    match_id: hostStarted.payload.match_id,
+    item_id: dropped.payload.item_id,
+  });
+  const repicked = await guest.waitFor(
+    'game.item.picked',
+    (payload) => payload.item_id === dropped.payload.item_id,
+  );
+
+  host.send('game.projectile.spawn', {
+    match_id: hostStarted.payload.match_id,
+    food_type: repicked.payload.food_type,
+    origin: { x: item.position.x, y: 1.2, z: item.position.z },
+    velocity: { x: 10, y: 3, z: 0 },
+    knockback_multiplier: 1.25,
+  });
+  const projectile = await guest.waitFor('game.projectile.spawn');
+  assert.equal(projectile.payload.source_id, hostWelcome.payload.player_id);
+  assert.equal(projectile.payload.food_type, repicked.payload.food_type);
+
+  const targetId = joined.payload.players.find(
+    (member) => member.id !== hostWelcome.payload.player_id,
+  ).id;
+  host.send('game.projectile.hit', {
+    match_id: hostStarted.payload.match_id,
+    projectile_id: projectile.payload.projectile_id,
+    target_id: targetId,
+    damage: 99,
+    knockback: { x: 5, y: 1, z: 0 },
+  });
+  const projectileHit = await guest.waitFor('game.hit');
+  const projectileDamage = repicked.payload.food_type === 'pumpkin' ? 2 : 1;
+  assert.equal(projectileHit.payload.damage, projectileDamage);
+  assert.equal(projectileHit.payload.health, 3 - projectileDamage);
+
+  host.send('game.projectile.despawn', {
+    match_id: hostStarted.payload.match_id,
+    projectile_id: projectile.payload.projectile_id,
+  });
+  const despawned = await guest.waitFor('game.projectile.despawn');
+  assert.equal(despawned.payload.projectile_id, projectile.payload.projectile_id);
+
   host.send('game.hit', {
     match_id: hostStarted.payload.match_id,
-    target_id: joined.payload.players.find((member) => member.id !== hostWelcome.payload.player_id).id,
+    target_id: targetId,
     damage: 1,
     knockback: { x: 5, y: 1, z: 0 },
   });
   const hit = await guest.waitFor('game.hit');
-  assert.equal(hit.payload.health, 2);
+  assert.equal(hit.payload.health, Math.max(0, 2 - projectileDamage));
 
   host.send('game.round.reset', { match_id: hostStarted.payload.match_id });
   const reset = await guest.waitFor('game.round.started');
   assert.ok(reset.payload.players.every((member) => member.health === 3));
+  assert.equal(reset.payload.items.length, 1);
 });
 
 test('host ownership transfers when the host leaves', async (t) => {

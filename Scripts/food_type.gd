@@ -8,6 +8,7 @@ extends Resource
 # override_color красит все меши модели (для glb со слетевшим материалом).
 
 @export var display_name := "Еда"
+@export var network_id := ""  # стабильное имя для TCP-пакетов; по умолчанию имя .tres
 
 @export_group("Visual")
 @export var visual_scene: PackedScene  # 3D-модель (glb); приоритетнее mesh
@@ -28,6 +29,12 @@ extends Resource
 
 @export_group("Spawning")
 @export var spawn_weight := 1.0  # вес в лотерее спавнера: больше вес — чаще падает
+
+
+func get_network_id() -> String:
+	if not network_id.is_empty():
+		return network_id
+	return resource_path.get_file().get_basename().to_lower()
 
 
 # Собирает визуал еды: инстанс модели или MeshInstance3D с заглушкой.

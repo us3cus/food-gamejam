@@ -18,6 +18,9 @@ extends CharacterBody3D
 signal health_changed(current: int, max_hp: int)
 signal died
 signal network_hit_requested(target_id: String, damage: int, knockback: Vector3)
+signal network_projectile_requested(food_type_id: String, origin: Vector3, velocity: Vector3,
+		knockback_multiplier: float)
+signal network_item_drop_requested(food_type_id: String, position: Vector3)
 
 # preload вместо глобального class_name: не зависит от кэша классов редактора.
 const FoodProjectileScript = preload("res://Scripts/food_projectile.gd")
@@ -261,6 +264,32 @@ func get_health() -> int:
 	return _health
 
 
+func get_network_player_id() -> String:
+	return network_player_id
+
+
+func is_local_network_player() -> bool:
+	return locally_controlled and not network_player_id.is_empty()
+
+
+func apply_network_held_food(food_type: FoodTypeScript) -> void:
+	if _held_type == food_type:
+		return
+	_held_type = food_type
+	_charging = false
+	_charge = 0.0
+	_update_held_visuals()
+
+
+func clear_network_held_food() -> void:
+	if _held_type == null:
+		return
+	_held_type = null
+	_charging = false
+	_charge = 0.0
+	_update_held_visuals()
+
+
 func _update_remote_player(delta: float) -> void:
 	global_position = global_position.lerp(_network_target_position, minf(delta * 14.0, 1.0))
 	velocity = _network_target_velocity
@@ -344,14 +373,24 @@ func _update_facing(delta: float) -> void:
 func _throw() -> void:
 	_cooldown_left = throw_cooldown
 	var speed_power := 1.0 + _charge * charge_speed_bonus
+	var knockback_multiplier := 1.0 + _charge * charge_knockback_bonus
+	var launch_velocity := _ballistic_velocity(_throw_origin.global_position, _aim_point,
+			_held_type.throw_speed * speed_power)
+	if is_local_network_player():
+		network_projectile_requested.emit(
+				_held_type.get_network_id(),
+				_throw_origin.global_position,
+				launch_velocity,
+				knockback_multiplier)
+		clear_network_held_food()
+		return
 	var projectile: FoodProjectileScript = projectile_scene.instantiate()
 	# Снаряд добавляем в сцену уровня, а не в игрока — он живёт сам по себе.
 	get_tree().current_scene.add_child(projectile)
 	projectile.global_position = _throw_origin.global_position
 	projectile.shooter = self
-	projectile.configure(_held_type, 1.0 + _charge * charge_knockback_bonus)
-	projectile.velocity = _ballistic_velocity(_throw_origin.global_position, _aim_point,
-			_held_type.throw_speed * speed_power)
+	projectile.configure(_held_type, knockback_multiplier)
+	projectile.velocity = launch_velocity
 	_held_type = null
 	_update_held_visuals()
 
@@ -361,6 +400,13 @@ func _drop_held_item() -> void:
 		return
 
 	var dropped_type: FoodTypeScript = _held_type
+	var drop_direction := -_visual.global_transform.basis.z
+	drop_direction.y = 0.0
+	var drop_position := global_position + drop_direction.normalized() * 1.1 + Vector3.UP * 0.5
+	if is_local_network_player():
+		network_item_drop_requested.emit(dropped_type.get_network_id(), drop_position)
+		clear_network_held_food()
+		return
 	_held_type = null
 	_charging = false
 	_charge = 0.0
@@ -372,9 +418,6 @@ func _drop_held_item() -> void:
 	var item := FoodItemScene.instantiate() as Node3D
 	item.food_type = dropped_type
 	item.prepare_drop(0.75)
-	var drop_direction := -_visual.global_transform.basis.z
-	drop_direction.y = 0.0
-	var drop_position := global_position + drop_direction.normalized() * 1.1 + Vector3.UP * 0.5
 	item.position = scene_root.to_local(drop_position)
 	scene_root.add_child(item)
 

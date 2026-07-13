@@ -13,6 +13,7 @@ size = Vector3(0.3, 0.2, 0.3)
 [resource]
 script = ExtResource("1_ft")
 display_name = "Сыр"
+network_id = "cheese"
 visual_scene = ExtResource("2_model")
 mesh = SubResource("mesh_cheese")
 visual_scale = 2.0

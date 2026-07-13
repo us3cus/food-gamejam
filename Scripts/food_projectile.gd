@@ -1,6 +1,10 @@
 class_name FoodProjectile
 extends Area3D
 
+signal network_hit_requested(projectile_id: String, target_id: String, damage: int,
+		knockback: Vector3)
+signal network_finished(projectile_id: String)
+
 # Снаряд летит по баллистической дуге на ручной интеграции (Area3D, а не RigidBody3D):
 # так полёт полностью предсказуем, а попадание ловим через body_entered.
 # Урон/кнокбэк/визуал приходят из FoodType через configure() — модель еды
@@ -18,6 +22,8 @@ var velocity := Vector3.ZERO
 var shooter: Node3D = null  # кто бросил — об него не разбиваемся
 var aoe_radius := 0.0       # > 0 — взрыв по площади (арбуз)
 var aoe_knockback := 8.0
+var network_projectile_id := ""
+var network_authoritative := false
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _age := 0.0
@@ -29,7 +35,11 @@ var _splash_color := Color(0.9, 0.3, 0.2)
 
 
 func _ready() -> void:
-	body_entered.connect(_on_body_entered)
+	if network_projectile_id.is_empty() or network_authoritative:
+		body_entered.connect(_on_body_entered)
+	else:
+		monitoring = false
+		monitorable = false
 
 
 # Настройка из типа еды; knockback_multiplier > 1 — заряженный бросок.
@@ -55,6 +65,7 @@ func _physics_process(delta: float) -> void:
 	_age += delta
 	if _age > lifetime or global_position.y < -2.0:
 		_splash()
+		_finish_network_projectile()
 		queue_free()
 
 
@@ -72,9 +83,10 @@ func _on_body_entered(body: Node3D) -> void:
 
 	# Контракт урона: бьём всё, у чего есть take_hit(damage, knockback).
 	if body.has_method("take_hit"):
-		body.take_hit(damage, _knockback_vector(body))
+		_apply_hit(body, damage, _knockback_vector(body))
 		get_tree().call_group("camera_shake", "shake", 0.18)
 	_splash()
+	_finish_network_projectile()
 	queue_free()
 
 
@@ -90,11 +102,27 @@ func _explode() -> void:
 			var dir: Vector3 = body.global_position - global_position
 			dir.y = 0.0
 			dir = dir.normalized()
-			body.take_hit(damage, (dir + Vector3.UP * 0.5).normalized() * aoe_knockback)
+			_apply_hit(body, damage, (dir + Vector3.UP * 0.5).normalized() * aoe_knockback)
 	_spawn_blast_visual()
 	_splash(40, 7.0)  # взрыв — большой сноп мякоти
 	get_tree().call_group("camera_shake", "shake", 0.55)
+	_finish_network_projectile()
 	queue_free()
+
+
+func _apply_hit(body: Node3D, hit_damage: int, knockback: Vector3) -> void:
+	if not network_projectile_id.is_empty() and network_authoritative \
+			and body.has_method("get_network_player_id"):
+		var target_id := str(body.get_network_player_id())
+		if not target_id.is_empty():
+			network_hit_requested.emit(network_projectile_id, target_id, hit_damage, knockback)
+			return
+	body.take_hit(hit_damage, knockback)
+
+
+func _finish_network_projectile() -> void:
+	if not network_projectile_id.is_empty() and network_authoritative:
+		network_finished.emit(network_projectile_id)
 
 
 # Брызги еды: одноразовые частицы цвета из FoodType, сами чистятся после выстрела.

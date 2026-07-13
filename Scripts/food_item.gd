@@ -1,5 +1,9 @@
 extends Area3D
 
+signal network_pickup_requested(item_id: String)
+signal network_bonk_requested(item_id: String, target_id: String, damage: int, knockback: Vector3)
+signal network_finished(item_id: String)
+
 # Пикап еды: спавнится в небе, падает, лежит и ждёт подбора.
 # Пока падает — ОПАСНА: удар по голове наносит урон (_try_bonk), а тень на полу
 # показывает зону падения широкой и сжимается по мере приближения к земле,
@@ -14,6 +18,7 @@ const FoodTypeScript = preload("res://Scripts/food_type.gd")
 @export var shadow_max_scale := 4.0    # ширина тени в начале падения (у земли -> 1)
 
 var food_type: FoodTypeScript = null  # задаёт спавнер ДО add_child
+var network_item_id := ""
 
 var _fall_velocity := 0.0
 var _falling := true
@@ -21,6 +26,7 @@ var _bonked := false  # урон сверху — не больше одного
 var _start_height := 1.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _pickup_delay_left := 0.0
+var _pickup_request_cooldown := 0.0
 
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
 @onready var _shadow: MeshInstance3D = $Shadow
@@ -45,6 +51,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_pickup_delay_left = maxf(_pickup_delay_left - delta, 0.0)
+	_pickup_request_cooldown = maxf(_pickup_request_cooldown - delta, 0.0)
 	if _falling:
 		_fall(delta)
 	elif not _has_floor_below():
@@ -56,6 +63,8 @@ func _physics_process(delta: float) -> void:
 			_try_pickup()
 
 	if global_position.y < -2.0:
+		if not network_item_id.is_empty():
+			network_finished.emit(network_item_id)
 		queue_free()
 
 
@@ -98,6 +107,16 @@ func _try_bonk() -> void:
 	if _bonked:
 		return
 	for body in get_overlapping_bodies():
+		if not network_item_id.is_empty():
+			if body.has_method("is_local_network_player") and body.is_local_network_player():
+				_bonked = true
+				network_bonk_requested.emit(
+						network_item_id,
+						body.get_network_player_id(),
+						fall_hit_damage,
+						Vector3.UP * fall_hit_knockback)
+				return
+			continue
 		if body.has_method("take_hit"):
 			_bonked = true
 			body.take_hit(fall_hit_damage, Vector3.UP * fall_hit_knockback)
@@ -108,6 +127,13 @@ func _try_bonk() -> void:
 # руками и бросил еду, повторного "входа" в зону не будет — сигнал бы не сработал.
 func _try_pickup() -> void:
 	for body in get_overlapping_bodies():
+		if not network_item_id.is_empty():
+			if _pickup_request_cooldown <= 0.0 and body.has_method("is_local_network_player") \
+					and body.is_local_network_player():
+				_pickup_request_cooldown = 0.4
+				network_pickup_requested.emit(network_item_id)
+				return
+			continue
 		if body.has_method("pick_up_food") and body.pick_up_food(food_type):
 			queue_free()
 			return

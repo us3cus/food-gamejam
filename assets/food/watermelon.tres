@@ -14,6 +14,7 @@ height = 0.58
 [resource]
 script = ExtResource("1_ft")
 display_name = "Арбуз"
+network_id = "watermelon"
 visual_scene = ExtResource("2_model")
 mesh = SubResource("mesh_melon")
 visual_scale = 0.2
