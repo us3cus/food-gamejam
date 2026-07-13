@@ -14,6 +14,7 @@
 [ext_resource type="Resource" path="res://assets/food/cheese.tres" id="12_cheese"]
 [ext_resource type="Resource" path="res://assets/food/pumpkin.tres" id="13_pumpkin"]
 [ext_resource type="Resource" path="res://assets/food/watermelon.tres" id="14_melon"]
+[ext_resource type="PackedScene" path="res://Scenes/pause.tscn" id="15_pause"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_arena"]
 
@@ -111,3 +112,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 2)
 player_path = NodePath("../Player")
 dummy_path = NodePath("../TrainingDummy")
 floor_path = NodePath("../Floor")
+
+[node name="PauseMenu" parent="." instance=ExtResource("15_pause")]

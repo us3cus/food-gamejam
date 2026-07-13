@@ -1,9 +1,170 @@
-[gd_scene format=3 uid="uid://bkdtfjn07us1y"]
+[gd_scene load_steps=6 format=3 uid="uid://bkdtfjn07us1y"]
 
-[node name="Control" type="Control" unique_id=1152159623]
+[ext_resource type="Script" path="res://Scripts/pause_menu.gd" id="1_pause"]
+[ext_resource type="Theme" path="res://assets/ui/foodfight_theme.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.075, 0.105, 0.13, 0.97)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.97, 0.61, 0.18, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.15, 0.52, 0.47, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.21, 0.69, 0.59, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+script = ExtResource("1_pause")
+
+[node name="Overlay" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Dim" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.025, 0.035, 0.78)
+mouse_filter = 2
+
+[node name="Center" type="CenterContainer" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="PanelContainer" parent="Overlay/Center"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Overlay/Center/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 52
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 52
+theme_override_constants/margin_bottom = 44
+
+[node name="MainButtons" type="VBoxContainer" parent="Overlay/Center/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Overlay/Center/MainPanel/Margin/MainButtons"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 54
+text = "ПАУЗА"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Overlay/Center/MainPanel/Margin/MainButtons"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.78, 0.81, 1)
+theme_override_font_sizes/font_size = 20
+text = "Esc — вернуться в раунд"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="Overlay/Center/MainPanel/Margin/MainButtons"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Продолжить"
+
+[node name="SettingsButton" type="Button" parent="Overlay/Center/MainPanel/Margin/MainButtons"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Настройки"
+
+[node name="MenuButton" type="Button" parent="Overlay/Center/MainPanel/Margin/MainButtons"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Выйти в меню"
+
+[node name="SettingsPanel" type="VBoxContainer" parent="Overlay/Center/MainPanel/Margin"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 46
+text = "НАСТРОЙКИ"
+horizontal_alignment = 1
+
+[node name="FullscreenCheck" type="CheckBox" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Полный экран"
+
+[node name="SoundLabel" type="Label" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "Громкость эффектов"
+
+[node name="SoundSlider" type="HSlider" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+
+[node name="MusicLabel" type="Label" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "Громкость музыки"
+
+[node name="MusicSlider" type="HSlider" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+
+[node name="BackButton" type="Button" parent="Overlay/Center/MainPanel/Margin/SettingsPanel"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Назад"

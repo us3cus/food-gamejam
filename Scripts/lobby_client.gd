@@ -36,8 +36,10 @@ var lobby_id := ""
 var _is_host := false
 var _is_ready := false
 var _can_start := false
+var _solo_test_available := false
 var _starting_match := false
 var _updating_settings_controls := false
+var _lobby_players: Array = []
 
 
 func _ready() -> void:
@@ -120,9 +122,34 @@ func _toggle_ready() -> void:
 
 
 func _start_match() -> void:
+	if _solo_test_available:
+		_start_solo_test()
+		return
+
 	start_button.disabled = true
 	status_label.text = "Сервер запускает матч..."
 	network.send_packet("lobby.start", {"lobby_id": lobby_id})
+
+
+func _start_solo_test() -> void:
+	var local_lobby_id := lobby_id
+	var settings := _settings_from_controls(room_max_players, room_round_time, room_wins)
+	_starting_match = true
+	start_button.disabled = true
+	status_label.text = "Запуск тестового матча..."
+	network.set_match_context({
+		"lobby_id": local_lobby_id,
+		"match_id": "local-test-%d" % Time.get_ticks_usec(),
+		"seed": randi_range(1, 2_147_483_646),
+		"settings": settings,
+		"players": _lobby_players.duplicate(true),
+		"test_mode": true,
+	})
+	# Серверный матч для одного игрока запрещён, поэтому освобождаем лобби и
+	# открываем локальную арену с тренировочным манекеном.
+	network.send_packet("lobby.leave", {"lobby_id": local_lobby_id})
+	lobby_id = ""
+	get_tree().call_deferred("change_scene_to_file", ARENA_SCENE_PATH)
 
 
 func _leave_room() -> void:
@@ -131,6 +158,9 @@ func _leave_room() -> void:
 	lobby_id = ""
 	_is_host = false
 	_is_ready = false
+	_can_start = false
+	_solo_test_available = false
+	_lobby_players.clear()
 	_show_setup()
 	_set_setup_actions_enabled(network.has_session())
 	connection_label.text = "Подключено к %s:%d" % [network.get_server_host(), network.get_server_port()]
@@ -167,7 +197,7 @@ func _on_network_packet(packet: Dictionary) -> void:
 		return
 
 	match type:
-		"lobby.created", "lobby.joined", "lobby.updated":
+		"lobby.created", "lobby.joined", "lobby.updated", "lobby.ready", "lobby.settings":
 			_apply_lobby(payload)
 		"lobby.invite":
 			var invite_code := str(payload.get("invite_code", lobby_id))
@@ -231,6 +261,7 @@ func _apply_lobby(payload: Dictionary) -> void:
 	var players: Variant = payload.get("players", [])
 	_update_players(players)
 	_update_local_ready(players)
+	_lobby_players = players.duplicate(true) if players is Array else []
 
 	for control: Control in [room_max_players, room_round_time, room_wins]:
 		control.mouse_filter = Control.MOUSE_FILTER_STOP if _is_host else Control.MOUSE_FILTER_IGNORE
@@ -240,14 +271,19 @@ func _apply_lobby(payload: Dictionary) -> void:
 	ready_button.disabled = false
 	ready_button.text = "Отменить готовность" if _is_ready else "Готов"
 	start_button.visible = _is_host
-	_can_start = bool(payload.get("can_start", false))
-	start_button.disabled = not _can_start
+	_can_start = bool(payload.get("can_start")) if payload.has("can_start") else _players_can_start(
+			players, str(payload.get("host_id", "")))
+	_solo_test_available = _is_host and _lobby_players.size() == 1
+	start_button.disabled = not (_can_start or _solo_test_available)
+	start_button.text = "Тестовый запуск" if _solo_test_available else "Начать игру"
 	copy_button.disabled = false
 	apply_settings_button.disabled = false
 
 	var message := str(payload.get("status_message", ""))
-	if message.is_empty():
-		message = "Можно начинать" if _can_start else "Ожидание готовности игроков"
+	if _solo_test_available:
+		message = "Можно запустить локальный тест с манекеном"
+	elif message.is_empty():
+		message = "Все готовы — можно начинать" if _can_start else "Ожидание готовности игроков"
 	status_label.text = message
 	connection_label.text = "Лобби на %s:%d" % [network.get_server_host(), network.get_server_port()]
 
@@ -286,6 +322,18 @@ func _update_local_ready(players: Variant) -> void:
 			return
 
 
+func _players_can_start(players: Variant, host_id: String) -> bool:
+	if not players is Array or players.size() < 2:
+		return false
+	for player: Variant in players:
+		if not player is Dictionary:
+			return false
+		var is_host := bool(player.get("is_host", false)) or str(player.get("id", "")) == host_id
+		if not is_host and not bool(player.get("ready", false)):
+			return false
+	return true
+
+
 func _update_settings_controls(settings: Dictionary) -> void:
 	_updating_settings_controls = true
 	room_max_players.value = int(settings.get("max_players", 2))
@@ -311,7 +359,7 @@ func _show_server_error(payload: Dictionary) -> void:
 	else:
 		status_label.text = message
 		ready_button.disabled = false
-		start_button.disabled = not _can_start
+		start_button.disabled = not (_can_start or _solo_test_available)
 
 
 func _show_setup() -> void:
