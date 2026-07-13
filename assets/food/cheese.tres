@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="FoodType" format=3 uid="uid://ead4tg4vq8et"]
+
+[ext_resource type="Script" uid="uid://4ilkbbtl10na" path="res://Scripts/food_type.gd" id="1_ft"]
+
+[sub_resource type="StandardMaterial3D" id="mat_cheese"]
+albedo_color = Color(0.95, 0.78, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="mesh_cheese"]
+material = SubResource("mat_cheese")
+size = Vector3(0.3, 0.2, 0.3)
+
+[resource]
+script = ExtResource("1_ft")
+display_name = "Сыр"
+mesh = SubResource("mesh_cheese")
+rest_height = 0.1
+spawn_weight = 3.0

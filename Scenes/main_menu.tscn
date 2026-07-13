@@ -1,98 +1,138 @@
-[gd_scene format=3 uid="uid://dev5pirxfjevw"]
+[gd_scene load_steps=4 format=3 uid="uid://dev5pirxfjevw"]
 
 [ext_resource type="Script" uid="uid://bfum4skfnqo6g" path="res://Scripts/main_menu.gd" id="1_vb0cx"]
+[ext_resource type="Theme" path="res://assets/ui/foodfight_theme.tres" id="2_theme"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_4kxuq"]
-font_size = 125
+font_size = 96
+font_color = Color(1, 0.72, 0.3, 1)
+outline_size = 10
+outline_color = Color(0.025, 0.04, 0.05, 0.9)
+shadow_size = 6
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_offset = Vector2(0, 5)
 
-[node name="main_menu" type="Node2D" unique_id=1071015587]
+[node name="main_menu" type="Control" unique_id=1071015587]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_vb0cx")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1892908074]
-offset_right = 1920.0
-offset_bottom = 1080.0
-color = Color(0.22100195, 0.6351895, 0.5611714, 1)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.025, 0.035, 1)
+mouse_filter = 2
 
 [node name="NameLabel" type="Label" parent="." unique_id=1805483893]
-offset_left = 108.0
-offset_top = 64.0
-offset_right = 872.0
-offset_bottom = 235.0
-text = "Game Name"
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -600.0
+offset_top = 82.0
+offset_right = 600.0
+offset_bottom = 205.0
+theme = ExtResource("2_theme")
+text = "FOODFIGHT ARENA"
 label_settings = SubResource("LabelSettings_4kxuq")
+horizontal_alignment = 1
+mouse_filter = 2
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=1523234269]
-offset_top = 464.0
-offset_right = 1916.0
-offset_bottom = 1076.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 160.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="MenuPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(664, 480)
+layout_mode = 2
+mouse_filter = 2
 
 [node name="MainButtons" type="VBoxContainer" parent="CenterContainer" unique_id=1506188432]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
+theme_override_constants/separation = 18
 
 [node name="PlayBunnton" type="Button" parent="CenterContainer/MainButtons" unique_id=1383127326]
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Play"
+theme_override_font_sizes/font_size = 32
+text = "Сетевая игра"
 
 [node name="BackButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1540312997]
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Settings"
+theme_override_font_sizes/font_size = 32
+text = "Настройки"
 
 [node name="ExitButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1221268205]
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Exit"
+theme_override_font_sizes/font_size = 32
+text = "Выход"
 
 [node name="SettingContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1744133455]
 visible = false
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 20
 
 [node name="BackButton" type="Button" parent="CenterContainer/SettingContainer" unique_id=1755885891]
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Back
-"
+theme_override_font_sizes/font_size = 30
+text = "Назад"
 
 [node name="FullscreenCheck" type="CheckBox" parent="CenterContainer/SettingContainer" unique_id=587303457]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Full Screen
-"
+theme_override_font_sizes/font_size = 28
+text = "Полный экран"
 
 [node name="SoundSlider" type="HSlider" parent="CenterContainer/SettingContainer" unique_id=51966586]
-custom_minimum_size = Vector2(0, 80)
+custom_minimum_size = Vector2(0, 88)
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
-step = 0.001
+step = 0.01
 
 [node name="SoundLabel" type="Label" parent="CenterContainer/SettingContainer/SoundSlider" unique_id=920787273]
-custom_minimum_size = Vector2(480, 55)
+custom_minimum_size = Vector2(560, 42)
 layout_mode = 0
-offset_top = -24.0
-offset_right = 480.0
-offset_bottom = 113.0
-theme_override_font_sizes/font_size = 48
-text = "Volume
-"
+offset_top = -34.0
+offset_right = 560.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 25
+text = "Громкость эффектов"
 horizontal_alignment = 1
+mouse_filter = 2
 
 [node name="MusicSlider" type="HSlider" parent="CenterContainer/SettingContainer" unique_id=1658591473]
-custom_minimum_size = Vector2(0, 80)
+custom_minimum_size = Vector2(0, 88)
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 1.0
-step = 0.001
+step = 0.01
 
 [node name="MusicLabel" type="Label" parent="CenterContainer/SettingContainer/MusicSlider" unique_id=544088285]
-custom_minimum_size = Vector2(480, 55)
+custom_minimum_size = Vector2(560, 42)
 layout_mode = 0
-offset_top = -24.0
-offset_right = 480.0
-offset_bottom = 113.0
-theme_override_font_sizes/font_size = 48
-text = "Music
-"
+offset_top = -34.0
+offset_right = 560.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 25
+text = "Громкость музыки"
 horizontal_alignment = 1
+mouse_filter = 2

@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 const SETTINGS_PATH := "user://settings.cfg"
 const LOBBY_SCENE_PATH := "res://Scenes/lobby_scene.tscn"

@@ -1,0 +1,13 @@
+# Place this block in nginx's top-level stream context, not inside http/server.
+stream {
+    upstream foodfight_tcp_backend {
+        server 127.0.0.1:7778;
+    }
+
+    server {
+        listen 7777;
+        proxy_connect_timeout 5s;
+        proxy_timeout 1h;
+        proxy_pass foodfight_tcp_backend;
+    }
+}

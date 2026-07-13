@@ -1,0 +1,20 @@
+[Unit]
+Description=Foodfight raw TCP lobby server
+After=network.target
+
+[Service]
+Type=simple
+User=foodfight
+Group=foodfight
+WorkingDirectory=/opt/food-gamejam/server
+Environment=NODE_ENV=production
+Environment=TCP_HOST=127.0.0.1
+Environment=TCP_PORT=7778
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,35 +1,29 @@
-[gd_scene load_steps=2 format=3 uid="uid://d14uwoelh4u3w"]
+[gd_scene load_steps=3 format=3 uid="uid://d14uwoelh4u3w"]
 
 [ext_resource type="Script" path="res://Scripts/lobby_client.gd" id="1_lobby"]
+[ext_resource type="Theme" path="res://assets/ui/foodfight_theme.tres" id="2_theme"]
 
-[node name="lobby_scene" type="Control" unique_id=1053027990]
+[node name="LobbyScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_lobby")
 
-[node name="Lobby" type="Control" parent="." unique_id=577660123]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
+color = Color(0.015, 0.025, 0.035, 1)
+mouse_filter = 2
 
-[node name="Background" type="ColorRect" parent="Lobby" unique_id=876531548]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.0431373, 0.054902, 0.0784314, 0.85098)
-
-[node name="Center" type="CenterContainer" parent="Lobby" unique_id=296819527]
+[node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -37,78 +31,277 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LobbyPanel" type="PanelContainer" parent="Lobby/Center" unique_id=776689393]
+[node name="LobbyPanel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(1060, 820)
 layout_mode = 2
-custom_minimum_size = Vector2(900, 620)
 
-[node name="MarginContainer" type="MarginContainer" parent="Lobby/Center/LobbyPanel" unique_id=425644508]
+[node name="Margin" type="MarginContainer" parent="Center/LobbyPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 32
 
-[node name="MainColumn" type="VBoxContainer" parent="Lobby/Center/LobbyPanel/MarginContainer" unique_id=2105806567]
+[node name="MainColumn" type="VBoxContainer" parent="Center/LobbyPanel/Margin"]
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 42
+text = "FOODFIGHT — СЕТЕВАЯ ИГРА"
+horizontal_alignment = 1
+
+[node name="ConnectionLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 0.73, 1)
+theme_override_font_sizes/font_size = 18
+text = "Подключение..."
+horizontal_alignment = 1
+
+[node name="DiagnosticsLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.59, 0.62, 1)
+theme_override_font_sizes/font_size = 13
+text = "Диагностика TCP будет показана здесь"
+autowrap_mode = 2
+horizontal_alignment = 1
+
+[node name="SetupPanel" type="VBoxContainer" parent="Center/LobbyPanel/Margin/MainColumn"]
+layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 14
 
-[node name="TitleLabel" type="Label" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=2138177500]
+[node name="PlayerNameLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "ЛОББИ"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 30
-
-[node name="PlayersTitle" type="Label" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=2076612336]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Игроки"
 theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+text = "Имя игрока"
 
-[node name="PlayersScroll" type="ScrollContainer" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=343158448]
+[node name="PlayerNameEdit" type="LineEdit" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-custom_minimum_size = Vector2(0, 310)
-size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_font_sizes/font_size = 19
+max_length = 24
+placeholder_text = "Введите имя"
 
-[node name="PlayersList" type="VBoxContainer" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/PlayersScroll" unique_id=1186976719]
+[node name="CreateTitle" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+text = "Создать лобби"
 
-[node name="StatusLabel" type="Label" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=317058057]
+[node name="CreateSettings" type="GridContainer" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Ожидание игроков..."
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 10
+columns = 2
 
-[node name="ButtonsRow" type="HBoxContainer" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn" unique_id=1259125092]
+[node name="MaxPlayersLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Максимум игроков"
+
+[node name="MaxPlayers" type="SpinBox" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+min_value = 2.0
+max_value = 4.0
+value = 2.0
+
+[node name="RoundTimeLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Длительность раунда, сек"
+
+[node name="RoundTime" type="SpinBox" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+min_value = 30.0
+max_value = 180.0
+step = 15.0
+value = 90.0
+
+[node name="WinsLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Побед для выигрыша матча"
+
+[node name="Wins" type="SpinBox" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+min_value = 1.0
+max_value = 5.0
+value = 2.0
+
+[node name="CreateButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+disabled = true
+text = "Создать лобби"
+
+[node name="Separator" type="HSeparator" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
+layout_mode = 2
+
+[node name="JoinTitle" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+text = "Войти по коду"
+
+[node name="JoinRow" type="HBoxContainer" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="LeaveButton" type="Button" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/ButtonsRow" unique_id=745273626]
+[node name="JoinCodeEdit" type="LineEdit" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/JoinRow"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-custom_minimum_size = Vector2(150, 44)
 size_flags_horizontal = 3
-text = "Выйти в меню"
+theme_override_font_sizes/font_size = 19
+max_length = 8
+placeholder_text = "Код лобби"
 
-[node name="InviteButton" type="Button" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/ButtonsRow" unique_id=1087570948]
+[node name="JoinButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/JoinRow"]
+custom_minimum_size = Vector2(190, 48)
 layout_mode = 2
-custom_minimum_size = Vector2(130, 44)
-text = "Пригласить"
+theme_override_font_sizes/font_size = 18
+disabled = true
+text = "Войти"
 
-[node name="StartButton" type="Button" parent="Lobby/Center/LobbyPanel/MarginContainer/MainColumn/ButtonsRow" unique_id=1621006196]
+[node name="SetupButtons" type="HBoxContainer" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(120, 44)
-text = "Начать"
+theme_override_constants/separation = 10
 
-[node name="KickDialog" type="ConfirmationDialog" parent="Lobby" unique_id=1658562439]
-min_size = Vector2i(420, 180)
-title = "Исключить игрока?"
-dialog_text = "Исключить выбранного игрока из лобби?"
-ok_button_text = "Выгнать"
-cancel_button_text = "Отмена"
+[node name="ReconnectButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/SetupButtons"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+disabled = true
+text = "Переподключиться"
+
+[node name="MenuButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/SetupButtons"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Назад в меню"
+
+[node name="RoomPanel" type="VBoxContainer" parent="Center/LobbyPanel/Margin/MainColumn"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="RoomCodeLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 30
+text = "Код лобби: ------"
+horizontal_alignment = 1
+
+[node name="SettingsTitle" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+text = "Настройки матча"
+
+[node name="RoomSettings" type="GridContainer" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="MaxPlayersLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Максимум игроков"
+
+[node name="MaxPlayers" type="SpinBox" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]
+custom_minimum_size = Vector2(180, 38)
+layout_mode = 2
+min_value = 2.0
+max_value = 4.0
+value = 2.0
+
+[node name="RoundTimeLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Длительность раунда, сек"
+
+[node name="RoundTime" type="SpinBox" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]
+custom_minimum_size = Vector2(180, 38)
+layout_mode = 2
+min_value = 30.0
+max_value = 180.0
+step = 15.0
+value = 90.0
+
+[node name="WinsLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Побед для выигрыша матча"
+
+[node name="Wins" type="SpinBox" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]
+custom_minimum_size = Vector2(180, 38)
+layout_mode = 2
+min_value = 1.0
+max_value = 5.0
+value = 2.0
+
+[node name="ApplySettingsButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "Сохранить настройки"
+
+[node name="PlayersTitle" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+text = "Игроки"
+
+[node name="PlayersScroll" type="ScrollContainer" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+custom_minimum_size = Vector2(0, 225)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayersList" type="VBoxContainer" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/PlayersScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="StatusLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.35, 0.85, 0.73, 1)
+text = "Ожидание игроков"
+horizontal_alignment = 1
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="LeaveButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/ButtonsRow"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+text = "Выйти"
+
+[node name="CopyButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/ButtonsRow"]
+custom_minimum_size = Vector2(185, 48)
+layout_mode = 2
+text = "Копировать код"
+
+[node name="ReadyButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/ButtonsRow"]
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Готов"
+
+[node name="StartButton" type="Button" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/ButtonsRow"]
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Начать игру"

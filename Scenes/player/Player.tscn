@@ -1,26 +1,12 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/player_controller.gd" id="1_pc"]
+[ext_resource type="Script" path="res://Scripts/player_controller.gd" id="1_pc"]
 [ext_resource type="PackedScene" path="res://Scenes/projectiles/FoodProjectile.tscn" id="2_proj"]
+[ext_resource type="PackedScene" path="res://Scenes/player/Чел (2).glb" id="3_model"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
 height = 1.8
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
-albedo_color = Color(0.95, 0.95, 0.92, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-material = SubResource("StandardMaterial3D_body")
-radius = 0.4
-height = 1.8
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nose"]
-albedo_color = Color(0.9, 0.4, 0.15, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_nose"]
-material = SubResource("StandardMaterial3D_nose")
-size = Vector3(0.2, 0.2, 0.35)
 
 [sub_resource type="SphereMesh" id="SphereMesh_held"]
 radius = 0.2
@@ -46,13 +32,8 @@ shape = SubResource("CapsuleShape3D_body")
 
 [node name="Visual" type="Node3D" parent="."]
 
-[node name="Body" type="MeshInstance3D" parent="Visual"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_body")
-
-[node name="Nose" type="MeshInstance3D" parent="Visual"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, -0.45)
-mesh = SubResource("BoxMesh_nose")
+[node name="Чел (2)" parent="Visual" instance=ExtResource("3_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="ThrowOrigin" type="Marker3D" parent="Visual"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.7)
