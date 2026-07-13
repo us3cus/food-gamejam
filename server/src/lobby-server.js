@@ -4,6 +4,7 @@ import { randomBytes, randomInt, randomUUID } from 'node:crypto';
 const PROTOCOL_VERSION = 1;
 const MAX_PACKET_BYTES = 1_048_576;
 const RATE_LIMIT_PER_SECOND = 60;
+const GAME_STATE_INTERVAL_MS = 50;
 const LOBBY_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 function clampInteger(value, fallback, min, max) {
@@ -23,7 +24,7 @@ function normalizeCode(value) {
 
 function normalizeSettings(value = {}) {
   return {
-    max_players: clampInteger(value.max_players, 2, 2, 4),
+    max_players: 2,
     round_time: clampInteger(value.round_time, 90, 30, 180),
     wins_to_match: clampInteger(value.wins_to_match, 2, 1, 5),
     arena: 'kitchen',
@@ -48,6 +49,7 @@ function writePacket(socket, type, payload = {}, requestId = null) {
 
 export function createLobbyServer({ logger = console, debug = false } = {}) {
   const lobbies = new Map();
+  const matches = new Map();
 
   function debugLog(message) {
     if (debug) logger.info?.(`[tcp-debug] ${message}`);
@@ -63,7 +65,7 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
   }
 
   function canStart(lobby) {
-    if (lobby.started || lobby.players.size < 2) return false;
+    if (lobby.started || lobby.players.size !== 2) return false;
     return [...lobby.players.values()].every(
       (player) => player.id === lobby.hostId || player.ready,
     );
@@ -71,7 +73,7 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
 
   function statusMessage(lobby) {
     if (lobby.started) return 'Матч уже запущен';
-    if (lobby.players.size < 2) return 'Нужен минимум ещё один игрок';
+    if (lobby.players.size !== 2) return 'Для PvP нужны ровно два игрока';
     if (!canStart(lobby)) return 'Не все игроки готовы';
     return 'Все готовы — можно начинать';
   }
@@ -119,6 +121,22 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
     player.lobbyId = null;
     player.ready = false;
     if (!lobby) return;
+
+    if (lobby.matchId) {
+      const match = matches.get(lobby.matchId);
+      if (match) broadcast(lobby, 'game.player_left', {
+        match_id: match.id,
+        player_id: player.id,
+        message: 'Второй игрок отключился',
+      });
+      matches.delete(lobby.matchId);
+      for (const member of lobby.players.values()) {
+        member.lobbyId = null;
+        member.ready = false;
+      }
+      lobbies.delete(lobby.id);
+      return;
+    }
 
     lobby.players.delete(player.id);
     if (notify) writePacket(player.socket, 'lobby.left', { lobby_id: previousId });
@@ -179,6 +197,7 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
         settings,
         players: new Map([[player.id, player]]),
         started: false,
+        matchId: null,
       };
       player.lobbyId = id;
       player.ready = true;
@@ -276,12 +295,93 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
         return;
       }
       lobby.started = true;
+      const match = createMatch(lobby);
+      lobby.matchId = match.id;
+      matches.set(match.id, match);
       broadcast(lobby, 'lobby.started', {
         lobby_id: lobby.id,
-        match_id: randomUUID(),
+        match_id: match.id,
+        host_id: lobby.hostId,
         seed: randomInt(1, 2_147_483_647),
         settings: { ...lobby.settings },
-        players: publicPlayers(lobby),
+        players: matchPlayers(match),
+      });
+      broadcastGameState(match);
+      return;
+    }
+
+    if (type === 'game.input') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const state = match.players.get(player.id);
+      const position = vector(payload.position);
+      const velocity = vector(payload.velocity);
+      const yaw = Number(payload.yaw);
+      if (!position || !velocity || !Number.isFinite(yaw)) {
+        sendError(player, requestId, 'INVALID_INPUT', 'Некорректное состояние игрока');
+        return;
+      }
+      state.position = {
+        x: clamp(position.x, -12, 12),
+        y: clamp(position.y, -8, 20),
+        z: clamp(position.z, -12, 12),
+      };
+      state.velocity = {
+        x: clamp(velocity.x, -25, 25),
+        y: clamp(velocity.y, -25, 25),
+        z: clamp(velocity.z, -25, 25),
+      };
+      state.yaw = clamp(yaw, -Math.PI * 4, Math.PI * 4);
+      return;
+    }
+
+    if (type === 'game.hit') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      const source = match.players.get(player.id);
+      const target = match.players.get(String(payload.target_id ?? ''));
+      const damage = Number(payload.damage);
+      const knockback = vector(payload.knockback);
+      if (!target || target.id === source.id || !Number.isInteger(damage)
+          || damage < 1 || damage > 2 || !knockback) {
+        sendError(player, requestId, 'INVALID_HIT', 'Некорректное попадание');
+        return;
+      }
+      const now = Date.now();
+      if (now - source.lastHitAt < 120 || target.health <= 0) return;
+      source.lastHitAt = now;
+      target.health = Math.max(0, target.health - damage);
+      broadcastMatch(match, 'game.hit', {
+        match_id: match.id,
+        source_id: source.id,
+        target_id: target.id,
+        damage,
+        health: target.health,
+        knockback: {
+          x: clamp(knockback.x, -20, 20),
+          y: clamp(knockback.y, -20, 20),
+          z: clamp(knockback.z, -20, 20),
+        },
+      });
+      return;
+    }
+
+    if (type === 'game.round.reset') {
+      const match = getPlayerMatch(player, payload.match_id, requestId);
+      if (!match) return;
+      if (match.hostId !== player.id) {
+        sendError(player, requestId, 'NOT_HOST', 'Только хост может запустить следующий раунд');
+        return;
+      }
+      for (const state of match.players.values()) {
+        state.position = spawnPosition(state.spawnSlot);
+        state.velocity = { x: 0, y: 0, z: 0 };
+        state.health = 3;
+      }
+      broadcastMatch(match, 'game.round.started', {
+        match_id: match.id,
+        reset_match: payload.reset_match === true,
+        players: matchPlayers(match),
       });
       return;
     }
@@ -363,6 +463,79 @@ export function createLobbyServer({ logger = console, debug = false } = {}) {
   });
 
   server.on('error', (error) => logger.error?.(`TCP server error: ${error.message}`));
+  const gameTimer = setInterval(() => {
+    for (const match of matches.values()) broadcastGameState(match);
+  }, GAME_STATE_INTERVAL_MS);
+  gameTimer.unref();
+  server.on('close', () => clearInterval(gameTimer));
   server.lobbies = lobbies;
+  server.matches = matches;
   return server;
+
+  function createMatch(lobby) {
+    const match = { id: randomUUID(), lobbyId: lobby.id, hostId: lobby.hostId, players: new Map() };
+    [...lobby.players.values()].forEach((member, spawnSlot) => match.players.set(member.id, {
+      id: member.id,
+      name: member.name,
+      spawnSlot,
+      position: spawnPosition(spawnSlot),
+      velocity: { x: 0, y: 0, z: 0 },
+      yaw: spawnSlot === 0 ? -Math.PI / 2 : Math.PI / 2,
+      health: 3,
+      lastHitAt: 0,
+    }));
+    return match;
+  }
+
+  function getPlayerMatch(player, suppliedId, requestId) {
+    const lobby = lobbies.get(player.lobbyId);
+    const match = typeof suppliedId === 'string' ? matches.get(suppliedId) : null;
+    if (!lobby?.started || lobby.matchId !== suppliedId || !match?.players.has(player.id)) {
+      sendError(player, requestId, 'NOT_IN_MATCH', 'Игрок не состоит в этом матче');
+      return null;
+    }
+    return match;
+  }
+
+  function matchPlayers(match) {
+    return [...match.players.values()].map((state) => ({
+      id: state.id,
+      name: state.name,
+      spawn_slot: state.spawnSlot,
+      spawn: spawnPosition(state.spawnSlot),
+      position: state.position,
+      velocity: state.velocity,
+      yaw: state.yaw,
+      health: state.health,
+    }));
+  }
+
+  function broadcastGameState(match) {
+    broadcastMatch(match, 'game.state', {
+      match_id: match.id,
+      server_time: Date.now(),
+      players: matchPlayers(match),
+    });
+  }
+
+  function broadcastMatch(match, type, payload) {
+    const lobby = lobbies.get(match.lobbyId);
+    if (lobby) broadcast(lobby, type, payload);
+  }
+}
+
+function spawnPosition(slot) {
+  return { x: slot === 0 ? -4.5 : 4.5, y: 0.1, z: 0 };
+}
+
+function vector(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const x = Number(value.x);
+  const y = Number(value.y);
+  const z = Number(value.z);
+  return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z) ? { x, y, z } : null;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }

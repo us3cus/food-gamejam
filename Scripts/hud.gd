@@ -3,7 +3,8 @@ extends CanvasLayer
 # HUD матча: таймер и счёт сверху, здоровье слева/справа, экран конца раунда.
 # МАТЧ = best of N: счёт побед хранится в static-переменных — они живут,
 # пока запущена игра, и переживают reload_current_scene между раундами.
-# Манекен пока играет за "второго игрока": его нокаут — победа игрока.
+# Второй PlayerController — сетевой соперник; оба клиента получают одинаковый
+# результат попаданий от TCP-сервера.
 # HUD же двигает сужение арены: каждый кадр передаёт прогресс раунда полу
 # (floor_path -> shrinking_floor.gd).
 #
@@ -25,7 +26,7 @@ var _time_left := 0.0
 var _round_over := false
 var _match_over := false
 var _player_hp := 0
-var _dummy_hp := 0
+var _opponent_hp := 0
 var _floor = null
 
 @onready var _timer_label: Label = $TimerLabel
@@ -46,15 +47,15 @@ func _ready() -> void:
 
 	# Без типов: ноды берутся по NodePath из инспектора, обращаемся динамически.
 	var player = get_node(player_path)
-	var dummy = get_node(dummy_path)
+	var opponent = get_node(dummy_path)
 	_player_hp = player.max_health
-	_dummy_hp = dummy.max_health
+	_opponent_hp = opponent.max_health
 	_init_bar(_player_bar, _player_hp)
-	_init_bar(_dummy_bar, _dummy_hp)
+	_init_bar(_dummy_bar, _opponent_hp)
 	player.health_changed.connect(_on_player_health_changed)
-	dummy.health_changed.connect(_on_dummy_health_changed)
-	player.died.connect(_end_round.bind(2))  # смерть игрока = раунд манекену
-	dummy.died.connect(_end_round.bind(1))
+	opponent.health_changed.connect(_on_opponent_health_changed)
+	player.died.connect(_end_round.bind(2))
+	opponent.died.connect(_end_round.bind(1))
 
 
 # Настройки задаёт TCP-сервер при lobby.started. Один match_id сохраняется между
@@ -92,9 +93,9 @@ func _process(delta: float) -> void:
 
 # Время вышло — раунд берёт тот, у кого больше здоровья (0 = ничья).
 func _timeout_winner() -> int:
-	if _player_hp > _dummy_hp:
+	if _player_hp > _opponent_hp:
 		return 1
-	if _dummy_hp > _player_hp:
+	if _opponent_hp > _player_hp:
 		return 2
 	return 0
 
@@ -109,8 +110,8 @@ func _on_player_health_changed(current: int, _max_hp: int) -> void:
 	_player_bar.value = current
 
 
-func _on_dummy_health_changed(current: int, _max_hp: int) -> void:
-	_dummy_hp = current
+func _on_opponent_health_changed(current: int, _max_hp: int) -> void:
+	_opponent_hp = current
 	_dummy_bar.value = current
 
 
@@ -126,7 +127,10 @@ func _end_round(winner: int) -> void:
 	_match_over = _player_wins >= wins_to_take_match or _dummy_wins >= wins_to_take_match
 	_update_score_label()
 
-	var winner_name := "Игрок" if winner == 1 else "Манекен"
+	var winner_name := "Игрок 1" if winner == 1 else "Игрок 2"
+	var winner_node = get_node(player_path if winner == 1 else dummy_path)
+	if winner != 0 and not str(winner_node.network_player_name).is_empty():
+		winner_name = str(winner_node.network_player_name)
 	if winner == 0:
 		_winner_label.text = "Ничья — переигровка!"
 	elif _match_over:
@@ -144,8 +148,30 @@ func _update_score_label() -> void:
 
 
 func _on_restart_pressed() -> void:
+	var network := get_node_or_null("/root/Network") as NetworkClient
+	if network != null and not network.match_context.is_empty():
+		var host_id := str(network.match_context.get("host_id", ""))
+		if host_id != network.player_id:
+			_restart_button.text = "Ожидание хоста..."
+			_restart_button.disabled = true
+			return
+		if _match_over:
+			_player_wins = 0
+			_dummy_wins = 0
+		_restart_button.disabled = true
+		_restart_button.text = "Запуск раунда..."
+		network.send_packet("game.round.reset", {
+			"match_id": str(network.match_context.get("match_id", "")),
+			"reset_match": _match_over,
+		})
+		return
 	if _match_over:
 		_player_wins = 0
 		_dummy_wins = 0
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+func reset_network_match_score() -> void:
+	_player_wins = 0
+	_dummy_wins = 0

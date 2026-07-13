@@ -47,3 +47,11 @@ mesh = SubResource("SphereMesh_held")
 top_level = true
 cast_shadow = 0
 mesh = SubResource("CylinderMesh_aim")
+
+[node name="NameLabel" type="Label3D" parent="."]
+position = Vector3(0, 2.55, 0)
+text = "Игрок"
+font_size = 32
+outline_size = 8
+billboard = 1
+no_depth_test = true

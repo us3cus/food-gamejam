@@ -38,6 +38,7 @@ var _is_ready := false
 var _can_start := false
 var _starting_match := false
 var _updating_settings_controls := false
+var _lobby_players: Array = []
 
 
 func _ready() -> void:
@@ -131,6 +132,8 @@ func _leave_room() -> void:
 	lobby_id = ""
 	_is_host = false
 	_is_ready = false
+	_can_start = false
+	_lobby_players.clear()
 	_show_setup()
 	_set_setup_actions_enabled(network.has_session())
 	connection_label.text = "Подключено к %s:%d" % [network.get_server_host(), network.get_server_port()]
@@ -167,7 +170,7 @@ func _on_network_packet(packet: Dictionary) -> void:
 		return
 
 	match type:
-		"lobby.created", "lobby.joined", "lobby.updated":
+		"lobby.created", "lobby.joined", "lobby.updated", "lobby.ready", "lobby.settings":
 			_apply_lobby(payload)
 		"lobby.invite":
 			var invite_code := str(payload.get("invite_code", lobby_id))
@@ -185,7 +188,15 @@ func _on_network_packet(packet: Dictionary) -> void:
 			_set_setup_actions_enabled(network.has_session())
 		"lobby.started":
 			_starting_match = true
-			network.set_match_context(payload)
+			var match_payload: Dictionary = payload.duplicate(true)
+			if not match_payload.has("players"):
+				match_payload["players"] = _lobby_players.duplicate(true)
+			if not match_payload.has("host_id"):
+				for player: Variant in _lobby_players:
+					if player is Dictionary and bool(player.get("is_host", false)):
+						match_payload["host_id"] = str(player.get("id", ""))
+						break
+			network.set_match_context(match_payload)
 			status_label.text = "Матч начинается..."
 			get_tree().call_deferred("change_scene_to_file", ARENA_SCENE_PATH)
 		"error":
@@ -231,6 +242,7 @@ func _apply_lobby(payload: Dictionary) -> void:
 	var players: Variant = payload.get("players", [])
 	_update_players(players)
 	_update_local_ready(players)
+	_lobby_players = players.duplicate(true) if players is Array else []
 
 	for control: Control in [room_max_players, room_round_time, room_wins]:
 		control.mouse_filter = Control.MOUSE_FILTER_STOP if _is_host else Control.MOUSE_FILTER_IGNORE
@@ -240,14 +252,16 @@ func _apply_lobby(payload: Dictionary) -> void:
 	ready_button.disabled = false
 	ready_button.text = "Отменить готовность" if _is_ready else "Готов"
 	start_button.visible = _is_host
-	_can_start = bool(payload.get("can_start", false))
+	_can_start = bool(payload.get("can_start")) if payload.has("can_start") else _players_can_start(
+			players, str(payload.get("host_id", "")))
 	start_button.disabled = not _can_start
+	start_button.text = "Начать PvP"
 	copy_button.disabled = false
 	apply_settings_button.disabled = false
 
 	var message := str(payload.get("status_message", ""))
 	if message.is_empty():
-		message = "Можно начинать" if _can_start else "Ожидание готовности игроков"
+		message = "Все готовы — можно начинать" if _can_start else "Ожидание готовности игроков"
 	status_label.text = message
 	connection_label.text = "Лобби на %s:%d" % [network.get_server_host(), network.get_server_port()]
 
@@ -284,6 +298,18 @@ func _update_local_ready(players: Variant) -> void:
 		if player is Dictionary and str(player.get("id", "")) == network.player_id:
 			_is_ready = bool(player.get("ready", false))
 			return
+
+
+func _players_can_start(players: Variant, host_id: String) -> bool:
+	if not players is Array or players.size() < 2:
+		return false
+	for player: Variant in players:
+		if not player is Dictionary:
+			return false
+		var is_host := bool(player.get("is_host", false)) or str(player.get("id", "")) == host_id
+		if not is_host and not bool(player.get("ready", false)):
+			return false
+	return true
 
 
 func _update_settings_controls(settings: Dictionary) -> void:
