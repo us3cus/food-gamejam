@@ -20,6 +20,7 @@ var _falling := true
 var _bonked := false  # урон сверху — не больше одного раза на предмет
 var _start_height := 1.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var _pickup_delay_left := 0.0
 
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
 @onready var _shadow: MeshInstance3D = $Shadow
@@ -38,16 +39,22 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_pickup_delay_left = maxf(_pickup_delay_left - delta, 0.0)
 	if _falling:
 		_fall(delta)
 	elif not _has_floor_below():
 		# Арена сжалась и пол ушёл из-под предмета — падаем дальше в пропасть.
 		_falling = true
-	else:
+	elif _pickup_delay_left <= 0.0:
 		_try_pickup()
 
 	if global_position.y < -2.0:
 		queue_free()
+
+
+func prepare_drop(seconds: float) -> void:
+	_pickup_delay_left = maxf(seconds, 0.0)
+	_bonked = true
 
 
 func _fall(delta: float) -> void:

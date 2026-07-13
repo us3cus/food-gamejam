@@ -146,6 +146,7 @@ func _apply_round_reset(payload: Dictionary) -> void:
 
 
 func _return_to_lobby() -> void:
+	Music.stop_round()
 	get_tree().paused = false
 	network.clear_match_context()
 	get_tree().change_scene_to_file(LOBBY_SCENE_PATH)

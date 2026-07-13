@@ -22,6 +22,7 @@ signal network_hit_requested(target_id: String, damage: int, knockback: Vector3)
 # preload вместо глобального class_name: не зависит от кэша классов редактора.
 const FoodProjectileScript = preload("res://Scripts/food_projectile.gd")
 const FoodTypeScript = preload("res://Scripts/food_type.gd")
+const FoodItemScene: PackedScene = preload("res://Scenes/projectiles/FoodItem.tscn")
 
 const AIM_COLOR_ARMED := Color(1.0, 0.55, 0.1, 0.9)    # еда в руках — можно кидать
 const AIM_COLOR_EMPTY := Color(1.0, 1.0, 1.0, 0.25)    # руки пусты — маркер тусклый
@@ -43,9 +44,11 @@ const SLIP_SPIN_SPEED := 12.0  # рад/с; во время скольжения
 @export var locally_controlled := true
 
 @export_group("Animation")
-# Имя клипа бега в модели персонажа (у Mixamo-экспорта это "mixamo_com").
+# Имена idle и бега в импортированной Mixamo-модели.
 # Модель — любая сцена с AnimationPlayer внутри Visual: находится автоматически.
+@export var idle_animation := "Action"
 @export var run_animation := "mixamo_com"
+@export var animation_blend_time := 0.15
 
 @export_group("Throwing")
 @export var projectile_scene: PackedScene  # FoodProjectile.tscn, назначается в инспекторе
@@ -101,6 +104,8 @@ func _setup_animation() -> void:
 	if players.is_empty():
 		return
 	_anim_player = players.front()
+	if _anim_player.has_animation(idle_animation):
+		_anim_player.get_animation(idle_animation).loop_mode = Animation.LOOP_LINEAR
 	if _anim_player.has_animation(run_animation):
 		_anim_player.get_animation(run_animation).loop_mode = Animation.LOOP_LINEAR
 
@@ -116,11 +121,14 @@ func _physics_process(delta: float) -> void:
 	var sprinting := Input.is_action_pressed("sprint")
 	var jump_pressed := Input.is_action_just_pressed("jump")
 	var throw_held := Input.is_action_pressed("throw")
+	var drop_pressed := Input.is_action_just_pressed("drop_item")
 
 	_update_aim()
 	_apply_movement(move_input, sprinting, jump_pressed, delta)
 	_update_facing(delta)
 	_update_animation()
+	if drop_pressed:
+		_drop_held_item()
 
 	_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 	_update_charge(throw_held, delta)
@@ -323,6 +331,29 @@ func _throw() -> void:
 	_update_held_visuals()
 
 
+func _drop_held_item() -> void:
+	if _held_type == null:
+		return
+
+	var dropped_type: FoodTypeScript = _held_type
+	_held_type = null
+	_charging = false
+	_charge = 0.0
+	_update_held_visuals()
+
+	var scene_root := get_tree().current_scene as Node3D
+	if scene_root == null:
+		return
+	var item := FoodItemScene.instantiate() as Node3D
+	item.food_type = dropped_type
+	item.prepare_drop(0.75)
+	var drop_direction := -_visual.global_transform.basis.z
+	drop_direction.y = 0.0
+	var drop_position := global_position + drop_direction.normalized() * 1.1 + Vector3.UP * 0.5
+	item.position = scene_root.to_local(drop_position)
+	scene_root.add_child(item)
+
+
 func _update_held_visuals() -> void:
 	_held_food.visible = _held_type != null
 	if _held_type != null:
@@ -331,18 +362,24 @@ func _update_held_visuals() -> void:
 	_aim_material.albedo_color = AIM_COLOR_ARMED if _held_type != null else AIM_COLOR_EMPTY
 
 
-# Бег играет, пока есть горизонтальная скорость на земле; темп подстраивается
-# под фактическую скорость (спринт быстрее перебирает ногами). На месте и в
-# прыжке — пауза (кадр застывает; появится idle-клип — заменить pause на play).
+# Бег играет, пока есть горизонтальная скорость на земле; при остановке
+# AnimationPlayer плавно переходит в idle, а не замирает на случайном кадре бега.
 func _update_animation() -> void:
 	if _anim_player == null or not _anim_player.has_animation(run_animation):
 		return
 	var flat_speed := Vector2(velocity.x, velocity.z).length()
 	if flat_speed > 0.5 and (is_on_floor() or not locally_controlled):
 		if _anim_player.current_animation != run_animation or not _anim_player.is_playing():
-			_anim_player.play(run_animation)
+			_anim_player.play(run_animation, animation_blend_time)
 		_anim_player.speed_scale = maxf(flat_speed / move_speed, 0.5)
-	elif _anim_player.is_playing():
+	elif _anim_player.has_animation(idle_animation):
+		_anim_player.speed_scale = 1.0
+		if _anim_player.current_animation != idle_animation or not _anim_player.is_playing():
+			_anim_player.play(idle_animation, animation_blend_time)
+	else:
+		# Запасной вариант для моделей без idle: фиксированная начальная поза бега.
+		_anim_player.play(run_animation)
+		_anim_player.seek(0.0, true)
 		_anim_player.pause()
 
 

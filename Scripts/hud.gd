@@ -41,6 +41,7 @@ var _floor = null
 func _ready() -> void:
 	_apply_network_match_context()
 	_time_left = round_length
+	Music.start_round()
 	_restart_button.pressed.connect(_on_restart_pressed)
 	_floor = get_node_or_null(floor_path)
 	_update_score_label()
@@ -120,6 +121,7 @@ func _end_round(winner: int) -> void:
 	if _round_over:
 		return
 	_round_over = true
+	Music.stop_round()
 
 	match winner:
 		1: _player_wins += 1
