@@ -93,8 +93,9 @@ func send_packet(packet_type: String, payload: Dictionary = {}, quiet := false) 
 	}
 	var bytes := (JSON.stringify(packet) + "\n").to_utf8_buffer()
 	var result := _tcp.put_data(bytes)
-	if result == OK and not quiet:
-		_log("Отправлен %s (request_id=%d, %d байт)" % [packet_type, _request_id, bytes.size()])
+	if result == OK:
+		if not quiet:
+			_log("Отправлен %s (request_id=%d, %d байт)" % [packet_type, _request_id, bytes.size()])
 	else:
 		_log("Ошибка отправки %s (код %d)" % [packet_type, result])
 	return result == OK

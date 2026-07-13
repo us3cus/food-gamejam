@@ -245,8 +245,8 @@ func _sync_network_items(value: Variant) -> void:
 		if item_id.is_empty():
 			continue
 		server_item_ids[item_id] = true
-		var existing: Node = _network_items.get(item_id) as Node
-		if existing == null or not is_instance_valid(existing):
+		var existing: Variant = _network_items.get(item_id)
+		if not is_instance_valid(existing):
 			_network_items.erase(item_id)
 			_spawn_network_item(item_data)
 	for item_id: Variant in _network_items.keys():
@@ -272,9 +272,12 @@ func _spawn_network_item(payload: Dictionary) -> void:
 
 
 func _remove_network_item(item_id: String) -> void:
-	var item: Node = _network_items.get(item_id) as Node
+	# В словаре может остаться ссылка на объект, который уже вызвал queue_free().
+	# Не приводим такую ссылку через `as Node`: cast освобождённого Object сам
+	# генерирует runtime-ошибку до проверки is_instance_valid().
+	var item: Variant = _network_items.get(item_id)
 	_network_items.erase(item_id)
-	if item != null and is_instance_valid(item):
+	if is_instance_valid(item):
 		item.queue_free()
 
 
@@ -313,9 +316,9 @@ func _spawn_network_projectile(payload: Dictionary) -> void:
 
 
 func _remove_network_projectile(projectile_id: String) -> void:
-	var projectile: Node = _network_projectiles.get(projectile_id) as Node
+	var projectile: Variant = _network_projectiles.get(projectile_id)
 	_network_projectiles.erase(projectile_id)
-	if projectile != null and is_instance_valid(projectile):
+	if is_instance_valid(projectile):
 		projectile.queue_free()
 
 
