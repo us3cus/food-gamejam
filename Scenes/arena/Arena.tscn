@@ -17,6 +17,7 @@
 [ext_resource type="Resource" uid="uid://dg4rp35delirm" path="res://assets/food/pumpkin.tres" id="13_pumpkin"]
 [ext_resource type="Resource" uid="uid://dwc7qcpajhowk" path="res://assets/food/watermelon.tres" id="14_melon"]
 [ext_resource type="PackedScene" path="res://Scenes/pause.tscn" id="15_pause"]
+[ext_resource type="Script" path="res://Scripts/trap_spawner.gd" id="16_traps"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_arena"]
 
@@ -102,20 +103,10 @@ script = ExtResource("3_spawner")
 food_item_scene = ExtResource("4_fooditem")
 food_types = [ExtResource("11_tomato"), ExtResource("12_cheese"), ExtResource("13_pumpkin"), ExtResource("14_melon")]
 
-[node name="Pan" parent="." unique_id=636863822 instance=ExtResource("5_pan")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
-
-[node name="BananaPeel" parent="." unique_id=1515453942 instance=ExtResource("6_banana")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 2.5)
-
-[node name="BananaPeel2" parent="." unique_id=1392711145 instance=ExtResource("6_banana")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -2.5)
-
-[node name="OilPuddle" parent="." unique_id=182279578 instance=ExtResource("9_oil")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -2)
-
-[node name="Stove" parent="." unique_id=1135681347 instance=ExtResource("10_stove")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 2)
+[node name="TrapSpawner" type="Node3D" parent="."]
+script = ExtResource("16_traps")
+trap_scenes = [ExtResource("5_pan"), ExtResource("6_banana"), ExtResource("9_oil"), ExtResource("10_stove")]
+floor_path = NodePath("../Floor")
 
 [node name="HUD" parent="." unique_id=1505229463 instance=ExtResource("7_hud")]
 player_path = NodePath("../Player1")

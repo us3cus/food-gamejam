@@ -180,9 +180,30 @@ func take_hit(damage: int, knockback: Vector3) -> void:
 	apply_knockback(knockback)
 	if locally_controlled:
 		get_tree().call_group("camera_shake", "shake", 0.3)  # свой урон бьёт по камере
+	_spawn_damage_number(damage)
 	health_changed.emit(_health, max_health)
 	if _health == 0:
 		died.emit()
+
+
+# Всплывающая цифра урона над головой: видно, сколько сняло попадание.
+func _spawn_damage_number(amount: int) -> void:
+	if amount <= 0:
+		return
+	var label := Label3D.new()
+	label.text = "-%d" % amount
+	label.font_size = 72
+	label.outline_size = 14
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.modulate = Color(1.0, 0.25, 0.2)
+	get_tree().current_scene.add_child(label)
+	label.global_position = global_position + Vector3(0, 2.4, 0)
+	var tween := label.create_tween()
+	tween.tween_property(label, "global_position",
+			label.global_position + Vector3.UP * 1.2, 0.7)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.7)
+	tween.tween_callback(label.queue_free)
 
 
 func configure_network_player(player_id: String, player_name: String, is_local: bool,
@@ -214,6 +235,7 @@ func apply_network_hit(authoritative_health: int, knockback: Vector3) -> void:
 	_health = clampi(authoritative_health, 0, max_health)
 	if locally_controlled and _health > 0:
 		apply_knockback(knockback)
+	_spawn_damage_number(previous_health - _health)  # авторитативный урон виден обоим
 	health_changed.emit(_health, max_health)
 	if previous_health > 0 and _health == 0:
 		died.emit()

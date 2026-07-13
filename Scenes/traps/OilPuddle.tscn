@@ -3,9 +3,10 @@
 [ext_resource type="Script" path="res://Scripts/oil_puddle.gd" id="1_oil"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_oil"]
-albedo_color = Color(0.22, 0.18, 0.08, 1)
-metallic = 0.4
-roughness = 0.05
+transparency = 1
+albedo_color = Color(0.25, 0.2, 0.08, 0.85)
+metallic = 0.9
+roughness = 0.03
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_oil"]
 material = SubResource("StandardMaterial3D_oil")

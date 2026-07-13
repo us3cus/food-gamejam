@@ -4,10 +4,20 @@
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_banana"]
 albedo_color = Color(0.95, 0.85, 0.2, 1)
+roughness = 0.55
 
-[sub_resource type="BoxMesh" id="BoxMesh_banana"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_banana_core"]
+albedo_color = Color(0.98, 0.93, 0.6, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_peel"]
 material = SubResource("StandardMaterial3D_banana")
-size = Vector3(0.5, 0.05, 0.4)
+size = Vector3(0.34, 0.04, 0.13)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_core"]
+material = SubResource("StandardMaterial3D_banana_core")
+top_radius = 0.09
+bottom_radius = 0.11
+height = 0.07
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_banana"]
 radius = 0.35
@@ -16,9 +26,21 @@ height = 0.3
 [node name="BananaPeel" type="Area3D"]
 script = ExtResource("1_bp")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
-mesh = SubResource("BoxMesh_banana")
+[node name="Core" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+mesh = SubResource("CylinderMesh_core")
+
+[node name="Peel1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18, 0.03, 0)
+mesh = SubResource("BoxMesh_peel")
+
+[node name="Peel2" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.5, 0, 0.866, 0, 1, 0, -0.866, 0, -0.5, -0.09, 0.03, -0.156)
+mesh = SubResource("BoxMesh_peel")
+
+[node name="Peel3" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.5, 0, -0.866, 0, 1, 0, 0.866, 0, -0.5, -0.09, 0.03, 0.156)
+mesh = SubResource("BoxMesh_peel")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)

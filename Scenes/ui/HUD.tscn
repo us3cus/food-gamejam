@@ -41,7 +41,7 @@ offset_bottom = 80.0
 [node name="NameLabel" type="Label" parent="P1Panel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Игрок"
+text = "Игрок 1"
 
 [node name="HealthBar" type="ProgressBar" parent="P1Panel"]
 custom_minimum_size = Vector2(240, 24)
@@ -63,7 +63,7 @@ grow_horizontal = 0
 [node name="NameLabel" type="Label" parent="P2Panel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Манекен"
+text = "Игрок 2"
 horizontal_alignment = 2
 
 [node name="HealthBar" type="ProgressBar" parent="P2Panel"]

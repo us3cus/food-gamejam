@@ -31,6 +31,8 @@ var _floor = null
 
 @onready var _timer_label: Label = $TimerLabel
 @onready var _score_label: Label = $ScoreLabel
+@onready var _p1_name: Label = $P1Panel/NameLabel
+@onready var _p2_name: Label = $P2Panel/NameLabel
 @onready var _player_bar: ProgressBar = $P1Panel/HealthBar
 @onready var _dummy_bar: ProgressBar = $P2Panel/HealthBar
 @onready var _end_screen: Control = $EndScreen
@@ -78,6 +80,15 @@ func _apply_network_match_context() -> void:
 	var match_seed := int(network.match_context.get("seed", 0))
 	if match_seed != 0:
 		seed(match_seed)
+
+	# Имена игроков из лобби вместо заглушек "Игрок"/"Манекен".
+	var players: Variant = network.match_context.get("players", [])
+	if players is Array and players.size() == 2:
+		var ordered: Array = players.duplicate()
+		ordered.sort_custom(func(a: Variant, b: Variant) -> bool:
+			return int(a.get("spawn_slot", 0)) < int(b.get("spawn_slot", 0)))
+		_p1_name.text = str(ordered[0].get("name", "Игрок 1"))
+		_p2_name.text = str(ordered[1].get("name", "Игрок 2"))
 
 
 func _process(delta: float) -> void:

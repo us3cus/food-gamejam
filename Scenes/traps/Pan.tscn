@@ -3,28 +3,30 @@
 [ext_resource type="Script" path="res://Scripts/pan.gd" id="1_pan"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
-albedo_color = Color(0.35, 0.37, 0.42, 1)
-metallic = 0.6
-roughness = 0.4
+albedo_color = Color(0.25, 0.26, 0.3, 1)
+metallic = 0.85
+roughness = 0.25
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
-albedo_color = Color(0.5, 0.33, 0.18, 1)
+albedo_color = Color(0.45, 0.28, 0.14, 1)
+roughness = 0.7
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_base"]
-material = SubResource("StandardMaterial3D_metal")
-top_radius = 0.15
-bottom_radius = 0.22
-height = 0.5
-
-[sub_resource type="BoxMesh" id="BoxMesh_handle"]
+[sub_resource type="CylinderMesh" id="CylinderMesh_handle"]
 material = SubResource("StandardMaterial3D_wood")
-size = Vector3(1.5, 0.1, 0.16)
+top_radius = 0.05
+bottom_radius = 0.06
+height = 1.5
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_head"]
 material = SubResource("StandardMaterial3D_metal")
 top_radius = 0.5
-bottom_radius = 0.5
-height = 0.12
+bottom_radius = 0.44
+height = 0.07
+
+[sub_resource type="TorusMesh" id="TorusMesh_rim"]
+material = SubResource("StandardMaterial3D_metal")
+inner_radius = 0.42
+outer_radius = 0.52
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hit"]
 size = Vector3(2.3, 0.35, 1.0)
@@ -32,19 +34,19 @@ size = Vector3(2.3, 0.35, 1.0)
 [node name="Pan" type="Node3D"]
 script = ExtResource("1_pan")
 
-[node name="Base" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-mesh = SubResource("CylinderMesh_base")
-
 [node name="Rotor" type="Node3D" parent="."]
 
 [node name="Handle" type="MeshInstance3D" parent="Rotor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.5, 0)
-mesh = SubResource("BoxMesh_handle")
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.75, 0.5, 0)
+mesh = SubResource("CylinderMesh_handle")
 
 [node name="PanHead" type="MeshInstance3D" parent="Rotor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.5, 0)
 mesh = SubResource("CylinderMesh_head")
+
+[node name="PanRim" type="MeshInstance3D" parent="Rotor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.56, 0)
+mesh = SubResource("TorusMesh_rim")
 
 [node name="HitZone" type="Area3D" parent="Rotor"]
 
