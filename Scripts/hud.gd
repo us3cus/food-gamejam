@@ -19,6 +19,7 @@ extends CanvasLayer
 # static: счёт матча переживает перезагрузку сцены между раундами.
 static var _player_wins := 0
 static var _dummy_wins := 0
+static var _active_match_id := ""
 
 var _time_left := 0.0
 var _round_over := false
@@ -37,6 +38,7 @@ var _floor = null
 
 
 func _ready() -> void:
+	_apply_network_match_context()
 	_time_left = round_length
 	_restart_button.pressed.connect(_on_restart_pressed)
 	_floor = get_node_or_null(floor_path)
@@ -53,6 +55,27 @@ func _ready() -> void:
 	dummy.health_changed.connect(_on_dummy_health_changed)
 	player.died.connect(_end_round.bind(2))  # смерть игрока = раунд манекену
 	dummy.died.connect(_end_round.bind(1))
+
+
+# Настройки задаёт TCP-сервер при lobby.started. Один match_id сохраняется между
+# раундами, а новый матч сбрасывает static-счёт предыдущей игры.
+func _apply_network_match_context() -> void:
+	var network := get_node_or_null("/root/Network") as NetworkClient
+	if network == null or network.match_context.is_empty():
+		return
+
+	var match_id := str(network.match_context.get("match_id", ""))
+	if not match_id.is_empty() and match_id != _active_match_id:
+		_active_match_id = match_id
+		_player_wins = 0
+		_dummy_wins = 0
+
+	var settings := network.get_match_settings()
+	round_length = float(settings.get("round_time", round_length))
+	wins_to_take_match = int(settings.get("wins_to_match", wins_to_take_match))
+	var match_seed := int(network.match_context.get("seed", 0))
+	if match_seed != 0:
+		seed(match_seed)
 
 
 func _process(delta: float) -> void:

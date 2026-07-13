@@ -70,7 +70,7 @@ throw={
 
 [network]
 
-lobby/host="temten.me"
+lobby/host="onk.temten.me"
 lobby/port=7777
 
 [physics]

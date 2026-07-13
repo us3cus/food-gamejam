@@ -18,7 +18,7 @@ offset_left = 108.0
 offset_top = 64.0
 offset_right = 872.0
 offset_bottom = 235.0
-text = "Game Name"
+text = "FOODFIGHT ARENA"
 label_settings = SubResource("LabelSettings_4kxuq")
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=1523234269]
@@ -32,17 +32,17 @@ layout_mode = 2
 [node name="PlayBunnton" type="Button" parent="CenterContainer/MainButtons" unique_id=1383127326]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
-text = "Play"
+text = "Сетевая игра"
 
 [node name="BackButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1540312997]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
-text = "Settings"
+text = "Настройки"
 
 [node name="ExitButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1221268205]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
-text = "Exit"
+text = "Выход"
 
 [node name="SettingContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1744133455]
 visible = false
@@ -52,13 +52,13 @@ theme_override_constants/separation = 16
 [node name="BackButton" type="Button" parent="CenterContainer/SettingContainer" unique_id=1755885891]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
-text = "Back
+text = "Назад
 "
 
 [node name="FullscreenCheck" type="CheckBox" parent="CenterContainer/SettingContainer" unique_id=587303457]
 layout_mode = 2
 theme_override_font_sizes/font_size = 64
-text = "Full Screen
+text = "Полный экран
 "
 
 [node name="SoundSlider" type="HSlider" parent="CenterContainer/SettingContainer" unique_id=51966586]
@@ -75,7 +75,7 @@ offset_top = -24.0
 offset_right = 480.0
 offset_bottom = 113.0
 theme_override_font_sizes/font_size = 48
-text = "Volume
+text = "Громкость
 "
 horizontal_alignment = 1
 
@@ -93,6 +93,6 @@ offset_top = -24.0
 offset_right = 480.0
 offset_bottom = 113.0
 theme_override_font_sizes/font_size = 48
-text = "Music
+text = "Музыка
 "
 horizontal_alignment = 1
