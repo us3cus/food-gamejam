@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://gw7mdffqunqi"
-path.s3tc="res://.godot/imported/Карта_Image_2.jpg-fa1fa17300c667e197fd40b06009557d.s3tc.ctex"
+uid="uid://bvlouxflulupv"
+path.s3tc="res://.godot/imported/cheesetriangle_v3_cheesetriangle_cheese_Mat_Normal.jpg-13b0f47d34c7252295213d0cef61d1e1.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "2839a44b666cb1941849a71caacabf4f"
+"md5": "e100f96c3638cc34756972e2420c802f"
 }
 
 [deps]
 
-source_file="res://Scenes/arena/Карта_Image_2.jpg"
-dest_files=["res://.godot/imported/Карта_Image_2.jpg-fa1fa17300c667e197fd40b06009557d.s3tc.ctex"]
+source_file="res://assets/food/cheesetriangle_v3_cheesetriangle_cheese_Mat_Normal.jpg"
+dest_files=["res://.godot/imported/cheesetriangle_v3_cheesetriangle_cheese_Mat_Normal.jpg-13b0f47d34c7252295213d0cef61d1e1.s3tc.ctex"]
 
 [params]
 
@@ -30,7 +30,7 @@ compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=1
-roughness/src_normal="res://Scenes/arena/Карта_Image_2.jpg"
+roughness/src_normal="res://assets/food/cheesetriangle_v3_cheesetriangle_cheese_Mat_Normal.jpg"
 process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2

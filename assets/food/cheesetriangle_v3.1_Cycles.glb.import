@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://7ga6apdgqwvg"
-path="res://.godot/imported/Карта.glb-b7004014ec36a999a574133b2ec2cfdb.scn"
+uid="uid://bdyxxr3k0bvxg"
+path="res://.godot/imported/cheesetriangle_v3.1_Cycles.glb-988e68909886cab2dc24839b0ff3fbe8.scn"
 
 [deps]
 
-source_file="res://Scenes/arena/Карта.glb"
-dest_files=["res://.godot/imported/Карта.glb-b7004014ec36a999a574133b2ec2cfdb.scn"]
+source_file="res://assets/food/cheesetriangle_v3.1_Cycles.glb"
+dest_files=["res://.godot/imported/cheesetriangle_v3.1_Cycles.glb-988e68909886cab2dc24839b0ff3fbe8.scn"]
 
 [params]
 

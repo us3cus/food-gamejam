@@ -69,6 +69,7 @@ var _slip_left := 0.0               # сек скольжения (банан/м
 var _slip_velocity := Vector3.ZERO  # куда несёт во время скольжения
 var _health := 0
 var _spawn_position := Vector3.ZERO  # куда возвращаемся после падения с арены
+var _bob_time := 0.0                 # фаза покачивания еды над головой
 var network_player_id := ""
 var network_player_name := "Игрок"
 var _network_target_position := Vector3.ZERO
@@ -177,6 +178,8 @@ func take_hit(damage: int, knockback: Vector3) -> void:
 		return
 	_health = maxi(_health - damage, 0)
 	apply_knockback(knockback)
+	if locally_controlled:
+		get_tree().call_group("camera_shake", "shake", 0.3)  # свой урон бьёт по камере
 	health_changed.emit(_health, max_health)
 	if _health == 0:
 		died.emit()
@@ -355,11 +358,29 @@ func _drop_held_item() -> void:
 
 
 func _update_held_visuals() -> void:
+	# Модель еды в руках собирает сам тип (glb или заглушка); mesh-слот не нужен.
+	_held_food.mesh = null
+	for child in _held_food.get_children():
+		child.queue_free()
 	_held_food.visible = _held_type != null
 	if _held_type != null:
-		_held_food.mesh = _held_type.mesh
-		_held_food.scale = Vector3.ONE * _held_type.visual_scale * 0.9
+		var visual := _held_type.create_visual()
+		visual.scale *= 0.9
+		_held_food.add_child(visual)
+		# Поп-эффект подбора: еда упруго вырастает над головой.
+		_held_food.scale = Vector3.ONE * 0.25
+		var tween := _held_food.create_tween()
+		tween.tween_property(_held_food, "scale", Vector3.ONE, 0.22) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_aim_material.albedo_color = AIM_COLOR_ARMED if _held_type != null else AIM_COLOR_EMPTY
+
+
+# Еда над головой покачивается и крутится — живее, чем статичный предмет.
+func _process(delta: float) -> void:
+	if _held_food.visible:
+		_bob_time += delta
+		_held_food.position.y = 2.15 + sin(_bob_time * 3.0) * 0.08
+		_held_food.rotate_y(1.8 * delta)
 
 
 # Бег играет, пока есть горизонтальная скорость на земле; при остановке

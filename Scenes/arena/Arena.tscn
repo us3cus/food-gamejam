@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://qiuyqo4e71xf"]
 
 [ext_resource type="PackedScene" path="res://Scenes/player/Player.tscn" id="1_player"]
-[ext_resource type="PackedScene" uid="uid://7ga6apdgqwvg" path="res://Scenes/arena/Карта.glb" id="2_ia742"]
+[ext_resource type="PackedScene" path="res://Scenes/arena/тарелка.glb" id="2_plate"]
 [ext_resource type="Script" path="res://Scripts/arena_network.gd" id="2_network"]
+[ext_resource type="Script" path="res://Scripts/camera_shake.gd" id="2_shake"]
 [ext_resource type="Script" uid="uid://cns13qph2n0vq" path="res://Scripts/food_spawner.gd" id="3_spawner"]
 [ext_resource type="PackedScene" path="res://Scenes/projectiles/FoodItem.tscn" id="4_fooditem"]
 [ext_resource type="PackedScene" path="res://Scenes/traps/Pan.tscn" id="5_pan"]
@@ -61,23 +62,26 @@ shadow_enabled = true
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1015009522]
 transform = Transform3D(1, 0, 0, 0, 0.642788, 0.766044, 0, -0.766044, 0.642788, 0, 11.9, 10)
 current = true
+script = ExtResource("2_shake")
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=1144410206]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 script = ExtResource("8_floor")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=113058047]
+visible = false
 mesh = SubResource("CylinderMesh_floor")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=886337814]
 shape = SubResource("CylinderShape3D_floor")
 
 [node name="Rim" type="MeshInstance3D" parent="Floor" unique_id=1622201920]
+visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
 mesh = SubResource("CylinderMesh_rim")
 
-[node name="Карта" parent="Floor" unique_id=1931209552 instance=ExtResource("2_ia742")]
-transform = Transform3D(15, 0, 0, 0, 15, 0, 0, 0, 15, 16.225119, 0, 0)
+[node name="Тарелка" parent="Floor" instance=ExtResource("2_plate")]
+transform = Transform3D(18, 0, 0, 0, 18, 0, 0, 0, 18, 0, 0.7, 0)
 
 [node name="SpawnPoints" type="Node3D" parent="." unique_id=1785448439]
 

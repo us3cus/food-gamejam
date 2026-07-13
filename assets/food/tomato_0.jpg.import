@@ -2,24 +2,23 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1cb1a2xdsw03"
-path.s3tc="res://.godot/imported/Карта_Image_1.png-385869045f17a13b84292cb67d7619ee.s3tc.ctex"
+uid="uid://buuy8v0pl0pfk"
+path="res://.godot/imported/tomato_0.jpg-7dbebcb1d0b80fb49dd46302994cad3c.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 generator_parameters={
-"md5": "941acadaf1e3463b19c55672e4de864f"
+"md5": "42b2a1b660cfbab5d115125f1312acfc"
 }
 
 [deps]
 
-source_file="res://Scenes/arena/Карта_Image_1.png"
-dest_files=["res://.godot/imported/Карта_Image_1.png-385869045f17a13b84292cb67d7619ee.s3tc.ctex"]
+source_file="res://assets/food/tomato_0.jpg"
+dest_files=["res://.godot/imported/tomato_0.jpg-7dbebcb1d0b80fb49dd46302994cad3c.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -41,4 +40,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

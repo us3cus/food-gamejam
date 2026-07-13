@@ -31,6 +31,7 @@ func _physics_process(delta: float) -> void:
 			continue
 		_recently_hit[body] = hit_cooldown
 		body.apply_knockback(_hit_direction(body) * knockback_strength)
+		get_tree().call_group("camera_shake", "shake", 0.25)  # шлепок читается телом
 
 
 func _hit_direction(body: Node3D) -> Vector3:

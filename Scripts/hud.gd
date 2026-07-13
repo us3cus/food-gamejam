@@ -86,6 +86,11 @@ func _process(delta: float) -> void:
 	_time_left = maxf(_time_left - delta, 0.0)
 	var secs := ceili(_time_left)
 	_timer_label.text = "%d:%02d" % [floori(secs / 60.0), secs % 60]
+	if secs <= 10:  # финальный отсчёт — таймер краснеет и пульсирует
+		var pulse := 0.6 + 0.4 * absf(sin(_time_left * TAU * 0.5))
+		_timer_label.add_theme_color_override("font_color", Color(1.0, 0.25 * pulse, 0.2 * pulse))
+	else:
+		_timer_label.remove_theme_color_override("font_color")
 	if _floor != null:
 		_floor.set_round_progress(1.0 - _time_left / round_length)
 	if _time_left <= 0.0:

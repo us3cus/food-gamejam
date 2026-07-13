@@ -26,13 +26,18 @@ var _pickup_delay_left := 0.0
 @onready var _shadow: MeshInstance3D = $Shadow
 
 
+var _visual: Node3D = null
+
+
 func _ready() -> void:
 	if food_type == null:
 		push_warning("FoodItem без food_type: назначь FoodType-ресурс (спавнер делает это сам)")
 		queue_free()
 		return
-	_mesh.mesh = food_type.mesh
-	_mesh.scale = Vector3.ONE * food_type.visual_scale
+	# Визуал собирает сам тип еды: glb-модель или заглушка (см. food_type.gd).
+	_mesh.visible = false
+	_visual = food_type.create_visual()
+	add_child(_visual)
 	_start_height = maxf(global_position.y, 1.0)
 	# Тень — top_level-нода: стоит на полу в точке будущего приземления.
 	_shadow.global_position = Vector3(global_position.x, 0.03, global_position.z)
@@ -45,8 +50,10 @@ func _physics_process(delta: float) -> void:
 	elif not _has_floor_below():
 		# Арена сжалась и пол ушёл из-под предмета — падаем дальше в пропасть.
 		_falling = true
-	elif _pickup_delay_left <= 0.0:
-		_try_pickup()
+	else:
+		_visual.rotate_y(1.5 * delta)  # лежащая еда медленно крутится — видно издалека
+		if _pickup_delay_left <= 0.0:
+			_try_pickup()
 
 	if global_position.y < -2.0:
 		queue_free()
@@ -66,6 +73,7 @@ func _fall(delta: float) -> void:
 	var shadow_scale := lerpf(shadow_max_scale, 1.0, progress)
 	_shadow.scale = Vector3(shadow_scale, 1.0, shadow_scale)
 
+	_visual.rotate_y(4.0 * delta)  # в падении крутится быстрее — динамика
 	_try_bonk()
 
 	if global_position.y <= food_type.rest_height and _has_floor_below():
@@ -73,6 +81,16 @@ func _fall(delta: float) -> void:
 		_falling = false
 		_fall_velocity = 0.0
 		_shadow.visible = false
+		_land_squash()
+
+
+# Сквош при приземлении: сплющилась и упруго вернулась.
+func _land_squash() -> void:
+	var s := food_type.visual_scale
+	_visual.scale = Vector3(s * 1.35, s * 0.55, s * 1.35)
+	var tween := _visual.create_tween()
+	tween.tween_property(_visual, "scale", Vector3.ONE * s, 0.3) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # Удар по голове того, кто оказался под падающей едой.
