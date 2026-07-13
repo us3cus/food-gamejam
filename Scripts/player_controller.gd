@@ -17,6 +17,7 @@ extends CharacterBody3D
 
 signal health_changed(current: int, max_hp: int)
 signal died
+signal network_hit_requested(target_id: String, damage: int, knockback: Vector3)
 
 # preload вместо глобального class_name: не зависит от кэша классов редактора.
 const FoodProjectileScript = preload("res://Scripts/food_projectile.gd")
@@ -37,6 +38,9 @@ const SLIP_SPIN_SPEED := 12.0  # рад/с; во время скольжения
 @export var jump_velocity := 5.0       # м/с, вертикальная скорость прыжка
 @export var turn_speed := 12.0         # скорость доворота визуала к прицелу
 @export var knockback_friction := 10.0 # м/с^2, затухание внешнего толчка
+
+@export_group("Network")
+@export var locally_controlled := true
 
 @export_group("Animation")
 # Имя клипа бега в модели персонажа (у Mixamo-экспорта это "mixamo_com").
@@ -62,6 +66,11 @@ var _slip_left := 0.0               # сек скольжения (банан/м
 var _slip_velocity := Vector3.ZERO  # куда несёт во время скольжения
 var _health := 0
 var _spawn_position := Vector3.ZERO  # куда возвращаемся после падения с арены
+var network_player_id := ""
+var network_player_name := "Игрок"
+var _network_target_position := Vector3.ZERO
+var _network_target_velocity := Vector3.ZERO
+var _network_target_yaw := 0.0
 
 # Свой материал маркера на каждый инстанс игрока (меши в сцене делят общие ресурсы).
 var _aim_material := StandardMaterial3D.new()
@@ -71,11 +80,13 @@ var _anim_player: AnimationPlayer = null  # ищется внутри модел
 @onready var _throw_origin: Marker3D = $Visual/ThrowOrigin
 @onready var _held_food: MeshInstance3D = $Visual/HeldFood
 @onready var _aim_marker: MeshInstance3D = $AimMarker
+@onready var _name_label: Label3D = $NameLabel
 
 
 func _ready() -> void:
 	_health = max_health
 	_spawn_position = global_position
+	_network_target_position = global_position
 	_aim_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_aim_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_aim_marker.material_override = _aim_material
@@ -95,6 +106,10 @@ func _setup_animation() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not locally_controlled:
+		_update_remote_player(delta)
+		return
+
 	# Чтение инпута отдельно от применения движения/броска: для сети этот блок
 	# оборачивается в проверку authority, остальной код не меняется.
 	var move_input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -147,6 +162,9 @@ func _fall_off_arena() -> void:
 
 # Урон от снаряда — общий контракт take_hit, как у манекена (см. food_projectile.gd).
 func take_hit(damage: int, knockback: Vector3) -> void:
+	if not locally_controlled and not network_player_id.is_empty():
+		network_hit_requested.emit(network_player_id, damage, knockback)
+		return
 	if _health <= 0:
 		return
 	_health = maxi(_health - damage, 0)
@@ -154,6 +172,68 @@ func take_hit(damage: int, knockback: Vector3) -> void:
 	health_changed.emit(_health, max_health)
 	if _health == 0:
 		died.emit()
+
+
+func configure_network_player(player_id: String, player_name: String, is_local: bool,
+		spawn_position: Vector3) -> void:
+	network_player_id = player_id
+	network_player_name = player_name
+	locally_controlled = is_local
+	global_position = spawn_position
+	_spawn_position = spawn_position
+	_network_target_position = spawn_position
+	_name_label.text = player_name
+	_name_label.modulate = Color(1.0, 0.72, 0.3) if is_local else Color(0.35, 0.85, 1.0)
+	_aim_marker.visible = is_local
+	if not is_local:
+		_charging = false
+		_charge = 0.0
+
+
+func apply_network_state(position: Vector3, state_velocity: Vector3, visual_yaw: float) -> void:
+	if locally_controlled:
+		return
+	_network_target_position = position
+	_network_target_velocity = state_velocity
+	_network_target_yaw = visual_yaw
+
+
+func apply_network_hit(authoritative_health: int, knockback: Vector3) -> void:
+	var previous_health := _health
+	_health = clampi(authoritative_health, 0, max_health)
+	if locally_controlled and _health > 0:
+		apply_knockback(knockback)
+	health_changed.emit(_health, max_health)
+	if previous_health > 0 and _health == 0:
+		died.emit()
+
+
+func reset_network_round(spawn_position: Vector3) -> void:
+	global_position = spawn_position
+	_spawn_position = spawn_position
+	_network_target_position = spawn_position
+	_network_target_velocity = Vector3.ZERO
+	velocity = Vector3.ZERO
+	_knockback = Vector3.ZERO
+	_slip_left = 0.0
+	_health = max_health
+	health_changed.emit(_health, max_health)
+
+
+func get_network_yaw() -> float:
+	return _visual.rotation.y
+
+
+func get_health() -> int:
+	return _health
+
+
+func _update_remote_player(delta: float) -> void:
+	global_position = global_position.lerp(_network_target_position, minf(delta * 14.0, 1.0))
+	velocity = _network_target_velocity
+	_visual.rotation.y = lerp_angle(_visual.rotation.y, _network_target_yaw, minf(delta * 14.0, 1.0))
+	_aim_marker.visible = false
+	_update_animation()
 
 
 # Внешний толчок (сковородка и т.п.): горизонталь копится отдельно от инпута
@@ -258,7 +338,7 @@ func _update_animation() -> void:
 	if _anim_player == null or not _anim_player.has_animation(run_animation):
 		return
 	var flat_speed := Vector2(velocity.x, velocity.z).length()
-	if flat_speed > 0.5 and is_on_floor():
+	if flat_speed > 0.5 and (is_on_floor() or not locally_controlled):
 		if _anim_player.current_animation != run_animation or not _anim_player.is_playing():
 			_anim_player.play(run_animation)
 		_anim_player.speed_scale = maxf(flat_speed / move_speed, 0.5)

@@ -26,6 +26,12 @@ var _request_id := 0
 var _last_tcp_status := -1
 
 
+func _ready() -> void:
+	# TCP должен продолжать читать game.round.started, даже когда HUD поставил
+	# игровую сцену на паузу на экране результата раунда.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
 func connect_to_server() -> void:
 	if has_connection() or is_connecting():
 		_log("Запрос подключения пропущен: соединение уже активно")
@@ -74,7 +80,7 @@ func has_session() -> bool:
 	return has_connection() and not player_id.is_empty()
 
 
-func send_packet(packet_type: String, payload: Dictionary = {}) -> bool:
+func send_packet(packet_type: String, payload: Dictionary = {}, quiet := false) -> bool:
 	if not has_connection():
 		_log("Не отправлен %s: TCP не подключён" % packet_type)
 		return false
@@ -87,7 +93,7 @@ func send_packet(packet_type: String, payload: Dictionary = {}) -> bool:
 	}
 	var bytes := (JSON.stringify(packet) + "\n").to_utf8_buffer()
 	var result := _tcp.put_data(bytes)
-	if result == OK:
+	if result == OK and not quiet:
 		_log("Отправлен %s (request_id=%d, %d байт)" % [packet_type, _request_id, bytes.size()])
 	else:
 		_log("Ошибка отправки %s (код %d)" % [packet_type, result])
@@ -189,9 +195,11 @@ func _parse_packet(line: String) -> void:
 	if not packet is Dictionary or not packet.has("type"):
 		_log("Получен некорректный JSON-пакет (%d символов)" % line.length())
 		return
-	_log("Получен %s (request_id=%s)" % [str(packet.get("type", "")), str(packet.get("request_id", "-"))])
+	var packet_type := str(packet.get("type", ""))
+	if packet_type != "game.state":
+		_log("Получен %s (request_id=%s)" % [packet_type, str(packet.get("request_id", "-"))])
 
-	if str(packet.get("type", "")) == "session.welcome":
+	if packet_type == "session.welcome":
 		var payload: Variant = packet.get("payload", {})
 		if payload is Dictionary:
 			player_id = str(payload.get("player_id", ""))

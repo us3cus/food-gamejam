@@ -36,7 +36,6 @@ var lobby_id := ""
 var _is_host := false
 var _is_ready := false
 var _can_start := false
-var _solo_test_available := false
 var _starting_match := false
 var _updating_settings_controls := false
 var _lobby_players: Array = []
@@ -122,34 +121,9 @@ func _toggle_ready() -> void:
 
 
 func _start_match() -> void:
-	if _solo_test_available:
-		_start_solo_test()
-		return
-
 	start_button.disabled = true
 	status_label.text = "Сервер запускает матч..."
 	network.send_packet("lobby.start", {"lobby_id": lobby_id})
-
-
-func _start_solo_test() -> void:
-	var local_lobby_id := lobby_id
-	var settings := _settings_from_controls(room_max_players, room_round_time, room_wins)
-	_starting_match = true
-	start_button.disabled = true
-	status_label.text = "Запуск тестового матча..."
-	network.set_match_context({
-		"lobby_id": local_lobby_id,
-		"match_id": "local-test-%d" % Time.get_ticks_usec(),
-		"seed": randi_range(1, 2_147_483_646),
-		"settings": settings,
-		"players": _lobby_players.duplicate(true),
-		"test_mode": true,
-	})
-	# Серверный матч для одного игрока запрещён, поэтому освобождаем лобби и
-	# открываем локальную арену с тренировочным манекеном.
-	network.send_packet("lobby.leave", {"lobby_id": local_lobby_id})
-	lobby_id = ""
-	get_tree().call_deferred("change_scene_to_file", ARENA_SCENE_PATH)
 
 
 func _leave_room() -> void:
@@ -159,7 +133,6 @@ func _leave_room() -> void:
 	_is_host = false
 	_is_ready = false
 	_can_start = false
-	_solo_test_available = false
 	_lobby_players.clear()
 	_show_setup()
 	_set_setup_actions_enabled(network.has_session())
@@ -215,7 +188,15 @@ func _on_network_packet(packet: Dictionary) -> void:
 			_set_setup_actions_enabled(network.has_session())
 		"lobby.started":
 			_starting_match = true
-			network.set_match_context(payload)
+			var match_payload: Dictionary = payload.duplicate(true)
+			if not match_payload.has("players"):
+				match_payload["players"] = _lobby_players.duplicate(true)
+			if not match_payload.has("host_id"):
+				for player: Variant in _lobby_players:
+					if player is Dictionary and bool(player.get("is_host", false)):
+						match_payload["host_id"] = str(player.get("id", ""))
+						break
+			network.set_match_context(match_payload)
 			status_label.text = "Матч начинается..."
 			get_tree().call_deferred("change_scene_to_file", ARENA_SCENE_PATH)
 		"error":
@@ -273,16 +254,13 @@ func _apply_lobby(payload: Dictionary) -> void:
 	start_button.visible = _is_host
 	_can_start = bool(payload.get("can_start")) if payload.has("can_start") else _players_can_start(
 			players, str(payload.get("host_id", "")))
-	_solo_test_available = _is_host and _lobby_players.size() == 1
-	start_button.disabled = not (_can_start or _solo_test_available)
-	start_button.text = "Тестовый запуск" if _solo_test_available else "Начать игру"
+	start_button.disabled = not _can_start
+	start_button.text = "Начать PvP"
 	copy_button.disabled = false
 	apply_settings_button.disabled = false
 
 	var message := str(payload.get("status_message", ""))
-	if _solo_test_available:
-		message = "Можно запустить локальный тест с манекеном"
-	elif message.is_empty():
+	if message.is_empty():
 		message = "Все готовы — можно начинать" if _can_start else "Ожидание готовности игроков"
 	status_label.text = message
 	connection_label.text = "Лобби на %s:%d" % [network.get_server_host(), network.get_server_port()]
@@ -359,7 +337,7 @@ func _show_server_error(payload: Dictionary) -> void:
 	else:
 		status_label.text = message
 		ready_button.disabled = false
-		start_button.disabled = not (_can_start or _solo_test_available)
+		start_button.disabled = not _can_start
 
 
 func _show_setup() -> void:

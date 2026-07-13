@@ -108,7 +108,7 @@ text = "Максимум игроков"
 custom_minimum_size = Vector2(180, 42)
 layout_mode = 2
 min_value = 2.0
-max_value = 4.0
+max_value = 2.0
 value = 2.0
 
 [node name="RoundTimeLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/SetupPanel/CreateSettings"]
@@ -223,7 +223,7 @@ text = "Максимум игроков"
 custom_minimum_size = Vector2(180, 38)
 layout_mode = 2
 min_value = 2.0
-max_value = 4.0
+max_value = 2.0
 value = 2.0
 
 [node name="RoundTimeLabel" type="Label" parent="Center/LobbyPanel/Margin/MainColumn/RoomPanel/RoomSettings"]

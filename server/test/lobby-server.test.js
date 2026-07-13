@@ -132,6 +132,33 @@ test('create, configure, ready and start a lobby over TCP', async (t) => {
   assert.equal(hostStarted.payload.match_id, guestStarted.payload.match_id);
   assert.equal(hostStarted.payload.seed, guestStarted.payload.seed);
   assert.deepEqual(hostStarted.payload.settings, guestStarted.payload.settings);
+  assert.equal(hostStarted.payload.players.length, 2);
+  assert.deepEqual(hostStarted.payload.players.map((player) => player.spawn_slot), [0, 1]);
+
+  host.send('game.input', {
+    match_id: hostStarted.payload.match_id,
+    position: { x: -3.25, y: 0.1, z: 1.5 },
+    velocity: { x: 4, y: 0, z: 0 },
+    yaw: 1.25,
+  });
+  const gameState = await guest.waitFor('game.state', (payload) => (
+    payload.players.some((member) => member.id === hostWelcome.payload.player_id
+      && member.position.x === -3.25)
+  ));
+  assert.equal(gameState.payload.players.length, 2);
+
+  host.send('game.hit', {
+    match_id: hostStarted.payload.match_id,
+    target_id: joined.payload.players.find((member) => member.id !== hostWelcome.payload.player_id).id,
+    damage: 1,
+    knockback: { x: 5, y: 1, z: 0 },
+  });
+  const hit = await guest.waitFor('game.hit');
+  assert.equal(hit.payload.health, 2);
+
+  host.send('game.round.reset', { match_id: hostStarted.payload.match_id });
+  const reset = await guest.waitFor('game.round.started');
+  assert.ok(reset.payload.players.every((member) => member.health === 3));
 });
 
 test('host ownership transfers when the host leaves', async (t) => {
