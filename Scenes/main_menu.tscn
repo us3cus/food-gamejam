@@ -1,7 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://dev5pirxfjevw"]
+[gd_scene format=3 uid="uid://dev5pirxfjevw"]
 
 [ext_resource type="Script" uid="uid://bfum4skfnqo6g" path="res://Scripts/main_menu.gd" id="1_vb0cx"]
-[ext_resource type="Theme" path="res://assets/ui/foodfight_theme.tres" id="2_theme"]
+[ext_resource type="Theme" uid="uid://c581sbrro5wj2" path="res://assets/ui/foodfight_theme.tres" id="2_theme"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_4kxuq"]
 font_size = 96
@@ -22,15 +22,16 @@ grow_vertical = 2
 script = ExtResource("1_vb0cx")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1892908074]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.015, 0.025, 0.035, 1)
 mouse_filter = 2
+color = Color(0.114508666, 0.44224238, 0.44487712, 1)
 
 [node name="NameLabel" type="Label" parent="." unique_id=1805483893]
+layout_mode = 0
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -600.0
@@ -41,10 +42,9 @@ theme = ExtResource("2_theme")
 text = "FOODFIGHT ARENA"
 label_settings = SubResource("LabelSettings_4kxuq")
 horizontal_alignment = 1
-mouse_filter = 2
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=1523234269]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 160.0
@@ -53,7 +53,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
 
-[node name="MenuPanel" type="PanelContainer" parent="CenterContainer"]
+[node name="MenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=1090863199]
 custom_minimum_size = Vector2(664, 480)
 layout_mode = 2
 mouse_filter = 2
@@ -68,6 +68,12 @@ custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Сетевая игра"
+
+[node name="HowToButton" type="Button" parent="CenterContainer/MainButtons"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Как играть"
 
 [node name="BackButton" type="Button" parent="CenterContainer/MainButtons" unique_id=1540312997]
 custom_minimum_size = Vector2(0, 76)
@@ -116,7 +122,6 @@ theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
 theme_override_font_sizes/font_size = 25
 text = "Громкость эффектов"
 horizontal_alignment = 1
-mouse_filter = 2
 
 [node name="MusicSlider" type="HSlider" parent="CenterContainer/SettingContainer" unique_id=1658591473]
 custom_minimum_size = Vector2(0, 88)
@@ -135,4 +140,108 @@ theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
 theme_override_font_sizes/font_size = 25
 text = "Громкость музыки"
 horizontal_alignment = 1
-mouse_filter = 2
+
+[node name="HowToModal" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Dim" type="ColorRect" parent="HowToModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.025, 0.035, 0.82)
+
+[node name="Center" type="CenterContainer" parent="HowToModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="HowToModal/Center"]
+custom_minimum_size = Vector2(1120, 790)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="HowToModal/Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 56
+theme_override_constants/margin_top = 38
+theme_override_constants/margin_right = 56
+theme_override_constants/margin_bottom = 42
+
+[node name="Content" type="VBoxContainer" parent="HowToModal/Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="ModalTitle" type="Label" parent="HowToModal/Center/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 48
+text = "КАК ИГРАТЬ"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="HowToModal/Center/Panel/Margin/Content"]
+layout_mode = 2
+
+[node name="PageTitle" type="Label" parent="HowToModal/Center/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 0.72, 1)
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+
+[node name="PageBody" type="RichTextLabel" parent="HowToModal/Center/Panel/Margin/Content"]
+custom_minimum_size = Vector2(1000, 470)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.9, 0.94, 0.95, 1)
+theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 25
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+
+[node name="Navigation" type="HBoxContainer" parent="HowToModal/Center/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="PreviousButton" type="Button" parent="HowToModal/Center/Panel/Margin/Content/Navigation"]
+custom_minimum_size = Vector2(250, 64)
+layout_mode = 2
+text = "← Назад"
+
+[node name="LeftSpacer" type="Control" parent="HowToModal/Center/Panel/Margin/Content/Navigation"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PageIndicator" type="Label" parent="HowToModal/Center/Panel/Margin/Content/Navigation"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.3, 1)
+theme_override_font_sizes/font_size = 23
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightSpacer" type="Control" parent="HowToModal/Center/Panel/Margin/Content/Navigation"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NextButton" type="Button" parent="HowToModal/Center/Panel/Margin/Content/Navigation"]
+custom_minimum_size = Vector2(250, 64)
+layout_mode = 2
+text = "Дальше →"
+
+[node name="CloseButton" type="Button" parent="HowToModal/Center/Panel/Margin/Content"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "Закрыть"
