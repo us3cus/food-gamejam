@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="FoodType" format=3 uid="uid://dwc7qcpajhowk"]
 
 [ext_resource type="Script" uid="uid://4ilkbbtl10na" path="res://Scripts/food_type.gd" id="1_ft"]
-[ext_resource type="PackedScene" path="res://assets/food/melon.glb" id="2_model"]
+[ext_resource type="PackedScene" uid="uid://dp2dwu821kbkw" path="res://assets/food/melon.glb" id="2_model"]
 
 [sub_resource type="StandardMaterial3D" id="mat_melon"]
 albedo_color = Color(0.25, 0.6, 0.25, 1)

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="FoodType" format=3 uid="uid://ead4tg4vq8et"]
 
 [ext_resource type="Script" uid="uid://4ilkbbtl10na" path="res://Scripts/food_type.gd" id="1_ft"]
-[ext_resource type="PackedScene" path="res://assets/food/cheesetriangle_v3.1_Cycles.glb" id="2_model"]
+[ext_resource type="PackedScene" uid="uid://bdyxxr3k0bvxg" path="res://assets/food/cheesetriangle_v3.1_Cycles.glb" id="2_model"]
 
 [sub_resource type="StandardMaterial3D" id="mat_cheese"]
 albedo_color = Color(0.95, 0.78, 0.2, 1)

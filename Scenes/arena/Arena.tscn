@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://qiuyqo4e71xf"]
 
 [ext_resource type="PackedScene" path="res://Scenes/player/Player.tscn" id="1_player"]
-[ext_resource type="PackedScene" path="res://Scenes/arena/тарелка.glb" id="2_plate"]
-[ext_resource type="Script" path="res://Scripts/arena_network.gd" id="2_network"]
-[ext_resource type="Script" path="res://Scripts/camera_shake.gd" id="2_shake"]
+[ext_resource type="Script" uid="uid://dkqbob18gk112" path="res://Scripts/arena_network.gd" id="2_network"]
+[ext_resource type="PackedScene" uid="uid://bhilwe7k4pads" path="res://Scenes/arena/тарелка.glb" id="2_plate"]
+[ext_resource type="Script" uid="uid://c7nibv20asfmu" path="res://Scripts/camera_shake.gd" id="2_shake"]
 [ext_resource type="Script" uid="uid://cns13qph2n0vq" path="res://Scripts/food_spawner.gd" id="3_spawner"]
 [ext_resource type="PackedScene" path="res://Scenes/projectiles/FoodItem.tscn" id="4_fooditem"]
 [ext_resource type="PackedScene" path="res://Scenes/traps/Pan.tscn" id="5_pan"]
@@ -16,8 +16,8 @@
 [ext_resource type="Resource" uid="uid://ead4tg4vq8et" path="res://assets/food/cheese.tres" id="12_cheese"]
 [ext_resource type="Resource" uid="uid://dg4rp35delirm" path="res://assets/food/pumpkin.tres" id="13_pumpkin"]
 [ext_resource type="Resource" uid="uid://dwc7qcpajhowk" path="res://assets/food/watermelon.tres" id="14_melon"]
-[ext_resource type="PackedScene" path="res://Scenes/pause.tscn" id="15_pause"]
-[ext_resource type="Script" path="res://Scripts/trap_spawner.gd" id="16_traps"]
+[ext_resource type="PackedScene" uid="uid://bkdtfjn07us1y" path="res://Scenes/pause.tscn" id="15_pause"]
+[ext_resource type="Script" uid="uid://wcdvepfs18cf" path="res://Scripts/trap_spawner.gd" id="16_traps"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_arena"]
 
@@ -77,12 +77,12 @@ mesh = SubResource("CylinderMesh_floor")
 shape = SubResource("CylinderShape3D_floor")
 
 [node name="Rim" type="MeshInstance3D" parent="Floor" unique_id=1622201920]
-visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
+visible = false
 mesh = SubResource("CylinderMesh_rim")
 
-[node name="Тарелка" parent="Floor" instance=ExtResource("2_plate")]
-transform = Transform3D(18, 0, 0, 0, 18, 0, 0, 0, 18, 0, 0.7, 0)
+[node name="Тарелка" parent="Floor" unique_id=784325042 instance=ExtResource("2_plate")]
+transform = Transform3D(18, 0, 0, 0, 18, 0, 0, 0, 18, 0, -0.34492165, 0)
 
 [node name="SpawnPoints" type="Node3D" parent="." unique_id=1785448439]
 
@@ -103,7 +103,7 @@ script = ExtResource("3_spawner")
 food_item_scene = ExtResource("4_fooditem")
 food_types = [ExtResource("11_tomato"), ExtResource("12_cheese"), ExtResource("13_pumpkin"), ExtResource("14_melon")]
 
-[node name="TrapSpawner" type="Node3D" parent="."]
+[node name="TrapSpawner" type="Node3D" parent="." unique_id=1693209613]
 script = ExtResource("16_traps")
 trap_scenes = [ExtResource("5_pan"), ExtResource("6_banana"), ExtResource("9_oil"), ExtResource("10_stove")]
 floor_path = NodePath("../Floor")
@@ -113,4 +113,4 @@ player_path = NodePath("../Player1")
 dummy_path = NodePath("../Player2")
 floor_path = NodePath("../Floor")
 
-[node name="PauseMenu" parent="." instance=ExtResource("15_pause")]
+[node name="PauseMenu" parent="." unique_id=1906596533 instance=ExtResource("15_pause")]
